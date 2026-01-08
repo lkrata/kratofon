@@ -43,35 +43,71 @@
         <button onclick="cl()" style="background:#600">Smazat</button>
     </div>
     <div id="output-container"><div id="output" style="height: 50%">Klikněte na START...</div></div>
-    <script>
-        const out = document.getElementById('output');
+   const out = document.getElementById('output');
         const btn = document.getElementById('btn-toggle');
         const cnt = document.getElementById('output-container');
         let run = false, txt = '';
+        
+        // --- PROMĚNNÉ PRO PAUZU ---
+        let lastResultTime = Date.now(); // Ukládá čas posledního zachyceného slova
+        const pauseLimit = 2000;         // Nastavení délky pauzy v milisekundách (2 sekundy)
+        
         const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
         rec.lang = 'cs-CZ'; rec.interimResults = true; rec.continuous = true;
+
         function toggle() {
             if (run) { rec.stop(); run = false; btn.innerText = "START"; btn.className = "stopped"; }
-            else { try { rec.start(); run = true; btn.innerText = "STOP"; btn.className = "running"; if(out.innerText.includes("Klepněte")) out.innerHTML = ""; } catch(e) {} }
+            else { 
+                try { 
+                    rec.start(); 
+                    run = true; 
+                    btn.innerText = "STOP"; 
+                    btn.className = "running"; 
+                    if(out.innerText.includes("Klikněte")) out.innerHTML = ""; 
+                } catch(e) {} 
+            }
         }
+
         rec.onresult = (e) => {
             let interim = '';
-            for (let i = e.resultIndex; i < e.results.length; ++i) {
-                if (e.results[i].isFinal) txt += e.results[i][0].transcript + ' ';
-                else interim += e.results[i][0].transcript;
+            let now = Date.now();
+            
+            // --- LOGIKA PRO NOVÝ ODSTAVEC ---
+            // Pokud je ticho déle než pauseLimit, přidáme prázdný řádek a pomlčku
+            if (now - lastResultTime > pauseLimit && txt !== '') {
+                txt += '<br><br>— '; 
             }
+            lastResultTime = now; // Aktualizujeme čas posledního slova
+
+            for (let i = e.resultIndex; i < e.results.length; ++i) {
+                if (e.results[i].isFinal) {
+                    txt += e.results[i][0].transcript + ' ';
+                } else {
+                    interim += e.results[i][0].transcript;
+                }
+            }
+            
+            // Výpis do HTML: hotový text + naskakující (interim) text bez průhlednosti
             out.innerHTML = txt + '<span class="interim">' + interim + '</span>';
-            cnt.scrollTop = cnt.scrollHeight;
+            cnt.scrollTop = cnt.scrollHeight; // Automatické odrolování dolů
         };
+
         rec.onend = () => { if (run) try { rec.start(); } catch(e) {} };
         rec.onerror = (e) => { if (e.error === 'not-allowed') document.getElementById('help').style.display = "block"; };
+        
+        // --- FUNKCE OVLÁDÁNÍ ---
         function sz(d) { let s = parseInt(window.getComputedStyle(out).fontSize); out.style.fontSize = (s + d) + 'px'; }
         function bg(c) { document.body.style.backgroundColor = c; }
         function fg(c) { out.style.color = c; }
         function cl() { txt = ''; out.innerHTML = ''; }
-        function cp() { navigator.clipboard.writeText(out.innerText); let t = btn.innerText; btn.innerText = "OK!"; setTimeout(() => btn.innerText = t, 1000); }
-    </script>
+        function cp() { 
+            navigator.clipboard.writeText(out.innerText); 
+            let t = btn.innerText; 
+            btn.innerText = "OK!"; 
+            setTimeout(() => btn.innerText = t, 1000); 
+        }
 </body>
 </html>
+
 
 
