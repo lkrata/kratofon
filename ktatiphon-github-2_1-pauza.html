@@ -70,28 +70,28 @@
     }
 
     rec.onresult = (e) => {
-        let interim = '';
-        let now = Date.now();
-        
-        // --- DETEKCE PAUZY PRO ODSTAVEC ---
-        if (now - lastResultTime > pauseLimit && txt !== '') {
-            txt += '<br><br>— '; 
-            lastResultTime = now; 
-        }
-        
-        if (e.results.length > 0) lastResultTime = now;
-
-        for (let i = e.resultIndex; i < e.results.length; ++i) {
-            if (e.results[i].isFinal) {
-                txt += e.results[i][0].transcript + ' ';
-            } else {
-                interim += e.results[i][0].transcript;
+            let interim = '';
+            let now = Date.now();
+            
+            // --- DETEKCE PAUZY PRO NOVÝ ODSTAVEC (bez pomlčky) ---
+            if (now - lastResultTime > pauseLimit && txt !== '') {
+                txt += '<br><br>'; // Jen prázdné řádky pro oddělení bloků
+                lastResultTime = now; 
             }
-        }
-        
-        out.innerHTML = txt + '<span class="interim">' + interim + '</span>';
-        cnt.scrollTop = cnt.scrollHeight;
-    };
+            
+            if (e.results.length > 0) lastResultTime = now;
+
+            for (let i = e.resultIndex; i < e.results.length; ++i) {
+                if (e.results[i].isFinal) {
+                    txt += e.results[i][0].transcript + ' ';
+                } else {
+                    interim += e.results[i][0].transcript;
+                }
+            }
+            
+            out.innerHTML = txt + '<span class="interim">' + interim + '</span>';
+            cnt.scrollTop = cnt.scrollHeight;
+        };
 
     rec.onend = () => { if (run) try { rec.start(); } catch(e) {} };
     rec.onerror = (e) => { if (e.error === 'not-allowed') document.getElementById('help').style.display = "block"; };
@@ -109,5 +109,6 @@
 </script>
     </body>
 </html>
+
 
 
