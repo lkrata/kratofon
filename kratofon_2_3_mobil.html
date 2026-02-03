@@ -2,8 +2,7 @@
 <html lang="cs">
 <head>
     <meta charset="UTF-8">
-    <title>Kratofon Web v2.2</title>
-   <meta name="description" content="Kratofon: Okamžitý přepis řeči zdarma. Přepisuje mluvenou řeč přímo na obrazovku. Žádná instalace ani registrace – stačí jeden klik." />
+    <title>Kratofon Web v2.3</title>
    <style>
         body { background-color: black; color: white; font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         #controls { background: #1a1a1a; padding: 5px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; border-bottom: 1px solid #333; z-index: 100; }
@@ -14,7 +13,7 @@
         .stopped { background: #b30000; }
         #output-container { flex-grow: 1; padding: 10px 15px; overflow-y: auto; scroll-behavior: smooth; }
         #output { font-size: 32px; line-height: 1.1; overflow-wrap: break-word; padding-bottom: 30vh; }
-        .interim { color: inherit; opacity: 1.0; }
+        .interim { color: inherit; opacity: 0.8; }
         #help { background: #b30000; color: white; padding: 5px; text-align: center; display: none; font-size: 14px; }
     </style>
 </head>
@@ -29,15 +28,6 @@
         <div class="group">
             <button onclick="bg('black')" style="background:black; width:20px; height:20px; border:1px solid #ffcc00"></button>
             <button onclick="bg('white')" style="background:white; width:20px; height:20px; border:1px solid #ffcc00"></button>
-            <button onclick="bg('navy')" style="background:navy; width:20px; height:20px; border:1px solid #ffcc00"></button>
-            <button onclick="bg('darkgreen')" style="background:darkgreen; width:20px; height:20px; border:1px solid #ffcc00"></button>
-        </div>
-        <div class="group">
-            <button onclick="fg('white')" style="background:white; width:20px; height:20px; border:1px solid #ffcc00"></button>
-            <button onclick="fg('silver')" style="background:silver; width:20px; height:20px; border:1px solid #ffcc00"></button>
-            <button onclick="fg('yellow')" style="background:yellow; width:20px; height:20px; border:1px solid #ffcc00"></button>
-            <button onclick="fg('navy')" style="background:navy; width:20px; height:20px; border:1px solid #ffcc00"></button>
-            <button onclick="fg('black')" style="background:black; width:20px; height:20px; border:1px solid #ffcc00"></button>
         </div>
         <button onclick="cp()">Kopírovat</button>
         <button onclick="cl()" style="background:#600">Smazat</button>
@@ -72,23 +62,26 @@
             let interim = '';
             let now = Date.now();
 
-            // Detekce pauzy pro nový odstavec
+            // Detekce pauzy pro odstavce
             if (now - lastResultTime > pauseLimit && txt !== '' && !txt.endsWith('<br><br>')) {
                 txt += '<br><br>'; 
             }
             lastResultTime = now;
 
-            // Oprava duplicity pro Samsung/Chrome: bereme jen nové 'final' výsledky
-            let finalThisTurn = '';
+            // Zásadní oprava pro Samsung: Projdeme výsledky a vezmeme jen ty nové
+            let newFinalText = '';
             for (let i = e.resultIndex; i < e.results.length; ++i) {
                 if (e.results[i].isFinal) {
-                    finalThisTurn += e.results[i][0].transcript + ' ';
+                    newFinalText += e.results[i][0].transcript + ' ';
                 } else {
                     interim += e.results[i][0].transcript;
                 }
             }
             
-            txt += finalThisTurn; // K celku přidáme jen to, co je skutečně hotové
+            // K hlavnímu textu přilepíme jen to, co je skutečně dokončené
+            txt += newFinalText;
+
+            // Vymažeme duplicity, které mohl způsobit e.resultIndex na mobilu
             out.innerHTML = txt + '<span class="interim">' + interim + '</span>';
             cnt.scrollTop = cnt.scrollHeight;
         };
@@ -98,7 +91,6 @@
         
         function sz(d) { let s = parseInt(window.getComputedStyle(out).fontSize); out.style.fontSize = (s + d) + 'px'; }
         function bg(c) { document.body.style.backgroundColor = c; }
-        function fg(c) { out.style.color = c; }
         function cl() { txt = ''; out.innerHTML = ''; }
         function cp() { 
             navigator.clipboard.writeText(out.innerText); 
