@@ -6,7 +6,7 @@
    <meta name="description" content="Kratofon: Okamžitý přepis řeči zdarma. Přepisuje mluvenou řeč přímo na obrazovku. Žádná instalace ani registrace – stačí jeden klik." />
    <style>
         body { background-color: black; color: white; font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        #controls { background: #1a1a1a; padding: 5px 10px 25px 10px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; border-bottom: 1px solid #333; z-index: 100; }
+        #controls { background: #1a1a1a; padding: 5px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; border-bottom: 1px solid #333; z-index: 100; }
         .group { display: flex; gap: 4px; align-items: center; border-right: 1px solid #444; padding-right: 8px; }
         button { padding: 4px 8px; cursor: pointer; background: #333; color: white; border: 1px solid #555; border-radius: 4px; font-weight: bold; font-size: 13px; }
         #btn-toggle { min-width: 70px; }
@@ -50,7 +50,7 @@
         const cnt = document.getElementById('output-container');
         let run = false, txt = '';
         let lastResultTime = Date.now(); 
-        const pauseLimit = 2500; // Mírně zvýšeno na 2.5 sekundy pro přirozenější pauzy
+        const pauseLimit = 2500; 
 
         const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
         rec.lang = 'cs-CZ'; rec.interimResults = true; rec.continuous = true;
@@ -72,21 +72,23 @@
             let interim = '';
             let now = Date.now();
 
-            // --- OPRAVA PRO MOBILY A DETEKCE PAUZY ---
-            // Odstavec vytvoříme jen pokud je ticho a předchozí text nekončí uprostřed slova
+            // Detekce pauzy pro nový odstavec
             if (now - lastResultTime > pauseLimit && txt !== '' && !txt.endsWith('<br><br>')) {
                 txt += '<br><br>'; 
             }
             lastResultTime = now;
 
+            // Oprava duplicity pro Samsung/Chrome: bereme jen nové 'final' výsledky
+            let finalThisTurn = '';
             for (let i = e.resultIndex; i < e.results.length; ++i) {
                 if (e.results[i].isFinal) {
-                    txt += e.results[i][0].transcript + ' ';
+                    finalThisTurn += e.results[i][0].transcript + ' ';
                 } else {
                     interim += e.results[i][0].transcript;
                 }
             }
             
+            txt += finalThisTurn; // K celku přidáme jen to, co je skutečně hotové
             out.innerHTML = txt + '<span class="interim">' + interim + '</span>';
             cnt.scrollTop = cnt.scrollHeight;
         };
