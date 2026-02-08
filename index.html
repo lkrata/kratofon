@@ -1,108 +1,273 @@
 <!DOCTYPE html>
 <html lang="cs">
-    <head>    
-        <meta charset="UTF-8">    
-        <title>Kratofon Web v2.3
-        </title>   
-        <style>        body { background-color: black; color: white; font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }         #controls { background: #1a1a1a; padding: 5px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; border-bottom: 1px solid #333; z-index: 100; }         .group { display: flex; gap: 4px; align-items: center; border-right: 1px solid #444; padding-right: 8px; }         button { padding: 4px 8px; cursor: pointer; background: #333; color: white; border: 1px solid #555; border-radius: 4px; font-weight: bold; font-size: 13px; }         #btn-toggle { min-width: 70px; }         .running { background: #2d5a27; }         .stopped { background: #b30000; }         #output-container { flex-grow: 1; padding: 10px 15px; overflow-y: auto; scroll-behavior: smooth; }         #output { font-size: 32px; line-height: 1.1; overflow-wrap: break-word; padding-bottom: 30vh; }         .interim { color: inherit; opacity: 0.8; }         #help { background: #b30000; color: white; padding: 5px; text-align: center; display: none; font-size: 14px; }     
-        </style>
-    </head>
-    <body>    
-        <div id="help">Povolte mikrofon v adresním řádku prohlížeče!
-        </div>    
-        <div id="controls">        
-            <button id="btn-toggle" onclick="toggle()" class="stopped">START
-            </button>        
-            <div class="group">            
-                <button onclick="sz(4)">Písmo +
-                </button>            
-                <button onclick="sz(-4)">Písmo -
-                </button>        
-            </div>        
-            <div class="group">            
-                <button onclick="bg('black')" style="background:black; width:20px; height:20px; border:1px solid #ffcc00">
-                </button>            
-                <button onclick="bg('white')" style="background:white; width:20px; height:20px; border:1px solid #ffcc00">
-                </button>            
-                <button onclick="bg('navy')" style="background:navy; width:20px; height:20px; border:1px solid #ffcc00">
-                </button>            
-                <button onclick="bg('darkgreen')" style="background:darkgreen; width:20px; height:20px; border:1px solid #ffcc00">
-                </button>        
-            </div>        
-            <div class="group">            
-                <button onclick="fg('white')" style="background:white; width:20px; height:20px; border:1px solid #ffcc00">
-                </button>            
-                <button onclick="fg('silver')" style="background:silver; width:20px; height:20px; border:1px solid #ffcc00">
-                </button>            
-                <button onclick="fg('yellow')" style="background:yellow; width:20px; height:20px; border:1px solid #ffcc00">
-                </button>            
-                <button onclick="fg('navy')" style="background:navy; width:20px; height:20px; border:1px solid #ffcc00">
-                </button>            
-                <button onclick="fg('black')" style="background:black; width:20px; height:20px; border:1px solid #ffcc00">
-                </button>        
-            </div>        
-            <button onclick="cp()">Kopírovat
-            </button>        
-            <button onclick="cl()" style="background:#600">Smazat
-            </button>    
-        </div>    
-        <div id="output-container">
-            <div id="output">Klikněte na START...
-            </div>
-        </div>    
-<script>
+<head> <!--opacity: 1.0-->   
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">    
+    <title>Kratofon Web v2.3</title>   
+    <style>
+        body { 
+            background-color: black; 
+            color: white; 
+            font-family: sans-serif; 
+            margin: 0; 
+            display: flex; 
+            flex-direction: column; 
+            height: 100vh; 
+            overflow: hidden;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        
+        #controls { 
+            background: #1a1a1a; 
+            padding: 5px; 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 8px; 
+            align-items: center; 
+            border-bottom: 1px solid #333; 
+            z-index: 100;
+            flex-shrink: 0;
+        }
+        
+        .group { 
+            display: flex; 
+            gap: 4px; 
+            align-items: center; 
+            border-right: 1px solid #444; 
+            padding-right: 8px;
+        }
+        
+        button { 
+            padding: 6px 10px; 
+            cursor: pointer; 
+            background: #333; 
+            color: white; 
+            border: 1px solid #555; 
+            border-radius: 4px; 
+            font-weight: bold; 
+            font-size: 13px;
+            touch-action: manipulation;
+        }
+        
+        #btn-toggle { 
+            min-width: 70px;
+        }
+        
+        .running { 
+            background: #2d5a27;
+        }
+        
+        .stopped { 
+            background: #b30000;
+        }
+        
+        #output-container { 
+            flex-grow: 1; 
+            padding: 10px 15px; 
+            overflow-y: auto; 
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        #output { 
+            font-size: 32px; 
+            line-height: 1.3; 
+            overflow-wrap: break-word; 
+            word-wrap: break-word;
+            padding-bottom: 30vh;
+            user-select: text;
+            -webkit-user-select: text;
+        }
+        
+        .interim { 
+            color: inherit; 
+            opacity: 1.0;
+        }
+        
+        #help { 
+            background: #b30000; 
+            color: white; 
+            padding: 5px; 
+            text-align: center; 
+            display: none; 
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>    
+    <div id="help">Povolte mikrofon v adresním řádku prohlížeče!</div>    
+    
+    <div id="controls">        
+        <button id="btn-toggle" onclick="toggle()" class="stopped">START</button>        
+        
+        <div class="group">            
+            <button onclick="sz(4)">Písmo +</button>            
+            <button onclick="sz(-4)">Písmo -</button>        
+        </div>        
+        
+        <div class="group">            
+            <button onclick="bg('black')" style="background:black; width:20px; height:20px; border:1px solid #ffcc00"></button>            
+            <button onclick="bg('white')" style="background:white; width:20px; height:20px; border:1px solid #ffcc00"></button>            
+            <button onclick="bg('navy')" style="background:navy; width:20px; height:20px; border:1px solid #ffcc00"></button>            
+            <button onclick="bg('darkgreen')" style="background:darkgreen; width:20px; height:20px; border:1px solid #ffcc00"></button>        
+        </div>        
+        
+        <div class="group">            
+            <button onclick="fg('white')" style="background:white; width:20px; height:20px; border:1px solid #ffcc00"></button>            
+            <button onclick="fg('silver')" style="background:silver; width:20px; height:20px; border:1px solid #ffcc00"></button>            
+            <button onclick="fg('yellow')" style="background:yellow; width:20px; height:20px; border:1px solid #ffcc00"></button>            
+            <button onclick="fg('navy')" style="background:navy; width:20px; height:20px; border:1px solid #ffcc00"></button>            
+            <button onclick="fg('black')" style="background:black; width:20px; height:20px; border:1px solid #ffcc00"></button>        
+        </div>        
+        
+        <button onclick="cp()">Kopírovat</button>        
+        <button onclick="cl()" style="background:#600">Smazat</button>    
+    </div>    
+    
+    <div id="output-container">
+        <div id="output">Klikněte na START...</div>
+    </div>    
+
+    <script>
         const out = document.getElementById('output');
         const btn = document.getElementById('btn-toggle');
         const cnt = document.getElementById('output-container');
-        let run = false, txt = '';
+        
+        let run = false;
+        let finalTranscript = '';
         let lastResultTime = Date.now(); 
-        const pauseLimit = 2500; 
+        let lastFinalLength = 0;
+        const pauseLimit = 2500;
+        
         const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-        rec.lang = 'cs-CZ'; rec.interimResults = true; rec.continuous = true;
+        rec.lang = 'cs-CZ';
+        rec.interimResults = true;
+        rec.continuous = true;
+        rec.maxAlternatives = 1;
+        
         function toggle() {
-            if (run) { rec.stop(); run = false; btn.innerText = "START"; btn.className = "stopped"; }
-            else { 
+            if (run) {
+                rec.stop();
+                run = false;
+                btn.innerText = "START";
+                btn.className = "stopped";
+            } else { 
                 try { 
-                    rec.start(); 
-                    run = true; 
-                    btn.innerText = "STOP"; 
-                    btn.className = "running"; 
-                    if(out.innerText.includes("Klikněte")) out.innerHTML = ""; 
-                } catch(e) {} 
-            }
-        }
-        rec.onresult = (e) => {
-            let interim = '';
-            let now = Date.now();
-            if (now - lastResultTime > pauseLimit && txt !== '' && !txt.endsWith('<br><br>')) {
-                txt += '<br><br>'; 
-            }
-            lastResultTime = now;
-            let newFinalText = '';
-            for (let i = e.resultIndex; i < e.results.length; ++i) {
-                if (e.results[i].isFinal) {
-                    newFinalText += e.results[i][0].transcript + ' ';
-                } else {
-                    interim += e.results[i][0].transcript;
+                    rec.start();
+                    run = true;
+                    btn.innerText = "STOP";
+                    btn.className = "running";
+                    if (out.innerText.includes("Klikněte")) {
+                        out.innerHTML = "";
+                        finalTranscript = '';
+                        lastFinalLength = 0;
+                    }
+                    lastResultTime = Date.now();
+                } catch(e) {
+                    console.error('Chyba při startu:', e);
                 }
             }
-            txt += newFinalText;
-            out.innerHTML = txt + '<span class="interim">' + interim + '</span>';
+        }
+        
+        rec.onresult = (e) => {
+            let interimTranscript = '';
+            let now = Date.now();
+            
+            // Přidej oddělovač po pauze
+            if (now - lastResultTime > pauseLimit && finalTranscript !== '' && !finalTranscript.endsWith('<br><br>')) {
+                finalTranscript += '<br><br>';
+                lastFinalLength = finalTranscript.length;
+            }
+            
+            lastResultTime = now;
+            
+            // Zpracuj pouze nové výsledky
+            for (let i = e.resultIndex; i < e.results.length; i++) {
+                const transcript = e.results[i][0].transcript;
+                
+                if (e.results[i].isFinal) {
+                    // Přidej mezeru pouze pokud text nekončí mezerou a není prázdný
+                    if (finalTranscript && !finalTranscript.endsWith(' ') && !finalTranscript.endsWith('<br><br>')) {
+                        finalTranscript += ' ';
+                    }
+                    finalTranscript += transcript;
+                    lastFinalLength = finalTranscript.length;
+                } else {
+                    interimTranscript += transcript;
+                }
+            }
+            
+            // Zobraz finální text + dočasný text
+            if (interimTranscript) {
+                out.innerHTML = finalTranscript + '<span class="interim">' + interimTranscript + '</span>';
+            } else {
+                out.innerHTML = finalTranscript;
+            }
+            
+            // Automatický scroll
             cnt.scrollTop = cnt.scrollHeight;
         };
-        rec.onend = () => { if (run) try { rec.start(); } catch(e) {} };
-        rec.onerror = (e) => { if (e.error === 'not-allowed') document.getElementById('help').style.display = "block"; };
         
-        function sz(d) { let s = parseInt(window.getComputedStyle(out).fontSize); out.style.fontSize = (s + d) + 'px'; }
-        function bg(c) { document.body.style.backgroundColor = c; }
-        function fg(c) { out.style.color = c; }
-        function cl() { txt = ''; out.innerHTML = ''; }
-        function cp() { 
-            navigator.clipboard.writeText(out.innerText); 
-            let t = btn.innerText; 
-            btn.innerText = "OK!"; 
-            setTimeout(() => btn.innerText = t, 1000); 
+        rec.onend = () => {
+            if (run) {
+                try {
+                    setTimeout(() => {
+                        if (run) rec.start();
+                    }, 100);
+                } catch(e) {
+                    console.error('Restart error:', e);
+                }
+            }
+        };
+        
+        rec.onerror = (e) => {
+            console.error('Recognition error:', e.error);
+            if (e.error === 'not-allowed' || e.error === 'permission-denied') {
+                document.getElementById('help').style.display = "block";
+            }
+            if (e.error === 'no-speech' && run) {
+                // Ignoruj "no-speech" chyby, pokračuj dál
+                return;
+            }
+        };
+        
+        rec.onstart = () => {
+            console.log('Recognition started');
+        };
+        
+        function sz(d) {
+            let s = parseInt(window.getComputedStyle(out).fontSize);
+            out.style.fontSize = (s + d) + 'px';
+        }
+        
+        function bg(c) {
+            document.body.style.backgroundColor = c;
+        }
+        
+        function fg(c) {
+            out.style.color = c;
+        }
+        
+        function cl() {
+            finalTranscript = '';
+            lastFinalLength = 0;
+            out.innerHTML = '';
+        }
+        
+        function cp() {
+            const textToCopy = out.innerText;
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                let t = btn.innerText;
+                btn.innerText = "OK!";
+                setTimeout(() => btn.innerText = t, 1000);
+            }).catch(err => {
+                console.error('Chyba kopírování:', err);
+            });
         }
     </script>
-    </body>
+</body>
 </html>
+```
+
+Celý kód je také ke stažení v souboru výše ☝️
