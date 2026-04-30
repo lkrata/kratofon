@@ -1,158 +1,145 @@
 <!DOCTYPE html>
 <html lang="cs">
-<head> <!--font-size-20 h padding-bottom 25vh -->  
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-Z04Y4RZYFV"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-Z04Y4RZYFV');
-</script>
-
+<head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Z04Y4RZYFV"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-Z04Y4RZYFV');
+    </script>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">    
-    <title>Kratofon - elektronické ucho</title> 
-    <meta name="description" content="Online přepis řeči zdarma – Kratofon převádí mluvené slovo na text
-        v reálném čase. Webová aplikace pro neslyšící a nedoslýchavé, elektronické ucho.">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kratofon - elektronické ucho</title>
+    <meta name="description" content="Online přepis řeči zdarma – Kratofon převádí mluvené slovo na text v reálném čase. Webová aplikace pro neslyšící a nedoslýchavé, elektronické ucho.">
     <style>
         body { 
-            background-color: black; 
-            color: white; 
-            font-family: sans-serif; 
-            margin: 0; 
-            display: flex; 
-            flex-direction: column; 
-            height: 100vh; 
-            overflow: hidden;
-            -webkit-user-select: none;
-            user-select: none;
+            background-color: black; color: white; font-family: sans-serif; margin: 0; 
+            display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+            -webkit-user-select: none; user-select: none;
         }
-        
         #controls { 
-            background: #1a1a1a; 
-            padding: 5px; 
-            display: flex; 
-            flex-wrap: wrap; 
-            gap: 8px; 
-            align-items: center; 
-            border-bottom: 1px solid #333; 
-            z-index: 100;
-            flex-shrink: 0;
+            background: #1a1a1a; padding: 5px; display: flex; flex-wrap: wrap; 
+            gap: 8px; align-items: center; border-bottom: 1px solid #333; z-index: 100; flex-shrink: 0; 
         }
-        
-        .group { 
-            display: flex; 
-            gap: 4px; 
-            align-items: center; 
-            border-right: 1px solid #444; 
-            padding-right: 8px;
-        }
-        
+        .group { display: flex; gap: 4px; align-items: center; border-right: 1px solid #444; padding-right: 8px; }
         button { 
-            padding: 6px 10px; 
-            cursor: pointer; 
-            background: #333; 
-            color: white; 
-            border: 1px solid #555; 
-            border-radius: 4px; 
-            font-weight: bold; 
-            font-size: 13px;
-            touch-action: manipulation;
+            padding: 6px 10px; cursor: pointer; background: #333; color: white; 
+            border: 1px solid #555; border-radius: 4px; font-weight: bold; font-size: 13px; touch-action: manipulation; 
         }
-        
-        #btn-toggle { 
-            min-width: 70px;
-        }
-        
-        .running { 
-            background: #2d5a27;
-        }
-        
-        .stopped { 
-            background: #b30000;
-        }
-        
+        #btn-toggle { min-width: 70px; }
+        .running { background: #2d5a27; }
+        .stopped { background: #b30000; }
         #output-container { 
-            flex-grow: 1; 
-            padding: 10px 15px; 
-            overflow-y: auto; 
-            scroll-behavior: smooth;
-            -webkit-overflow-scrolling: touch;
+            flex-grow: 1; padding: 10px 15px; overflow-y: auto; scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch; 
         }
-        
         #output { 
-            font-size: 20px; 
-            line-height: 1.3; 
-            overflow-wrap: break-word; 
-            word-wrap: break-word;
-            padding-bottom: 25vh;
-            user-select: text;
-            -webkit-user-select: text;
+            font-size: 20px; line-height: 1.3; overflow-wrap: break-word; word-wrap: break-word;
+            padding-bottom: 25vh; user-select: text; -webkit-user-select: text; 
         }
-        
-        .interim { 
-            color: inherit; 
-            opacity: 1.0;
+        .interim { color: inherit; opacity: 1.0; }
+        #help { background: #b30000; color: white; padding: 5px; text-align: center; display: none; font-size: 14px; }
+        #controls img.logo { width: 100px; height: 35px; margin: 3px 11px 3px 19px; }
+
+        /* Kafe tlačítko */
+        #kafe {
+            width: 32px; height: 31px; background-color: #333; border: 1px solid #ffcc00;
+            border-radius: 4px; cursor: pointer; display: inline-flex; align-items: center;
+            justify-content: center; vertical-align: middle; padding: 0;
         }
-        
-        #help { 
-            background: #b30000; 
-            color: white; 
-            padding: 5px; 
-            text-align: center; 
-            display: none; 
-            font-size: 14px;
+        #kafe img { width: 20px; height: 20px; }
+        #kafe:hover { background-color: #444; }
+
+        /* Modal okno */
+        #coffee-modal {
+            display: none; position: fixed; z-index: 1000; left: 0; top: 0; 
+            width: 100%; height: 100%; background-color: rgba(0,0,0,0.8);
         }
-        #controls img {
-    width: 100px;
-    height: 35px;
-    margin: 3px 11px 3px 19px;
+        #coffee-content {
+    background-color: #222;
+    margin: 2% auto; /* Méně místa nahoře, aby zbyl prostor dole */
+    padding: 10px;
+    border: 1px solid #ffcc00;
+    width: 90%;
+    max-width: 350px;
+    text-align: center;
+    border-radius: 10px;
+    color: white;
+    /* Odstraněna pevná výška, pokud tam byla */
+}
+
+#coffee-content img {
+    width: auto;           /* Šířka se přizpůsobí */
+    max-width: 100%;       /* Nepřeteče box do stran */
+    height: auto;
+    max-height: 250px;     /* Tady to zkrotíme, aby QR kód nebyl moc vysoký */
+    margin: 15px 0;
+    background: white;
+    padding: 10px;
+    border-radius: 5px;
+    display: inline-block; /* Lepší vycentrování */
 }
     </style>
 </head>
-<body>    
-    <div id="help">Povolte mikrofon v adresním řádku prohlížeče!</div>    
+<body>
+    <div id="help">Povolte mikrofon v adresním řádku prohlížeče!</div>
     
     <div id="controls">
-      <a href="https://lkrata.github.io/kratofon/"
-   title="Aplikace na přepis řeči strojovým zpracováním mluvy">
-    <img src="images/logo.png"
-         alt="Logo Kratofonu, webová aplikace elektronické ucho zdarma, která přepisuje řeč"
-         title="Aplikace na přepis řeči strojovým zpracováním mluvy">
-</a>
-      
-        <button id="btn-toggle" onclick="toggle()" class="stopped">START</button>        
+        <a href="https://lkrata.github.io/kratofon/" title="Aplikace na přepis řeči">
+            <img src="images/logo.png" class="logo" alt="Logo Kratofon">
+        </a>
         
-        <div class="group">            
-            <button onclick="sz(4)">Písmo +</button>            
-            <button onclick="sz(-4)">Písmo -</button>        
-        </div>        
-        
-        <div class="group">            
-            <button onclick="bg('black')" style="background:black; width:20px; height:20px; border:1px solid #ffcc00"></button>            
-            <button onclick="bg('white')" style="background:white; width:20px; height:20px; border:1px solid #ffcc00"></button>            
-            <button onclick="bg('navy')" style="background:navy; width:20px; height:20px; border:1px solid #ffcc00"></button>            
-            <button onclick="bg('darkgreen')" style="background:darkgreen; width:20px; height:20px; border:1px solid #ffcc00"></button>        
-        </div>        
-        
-        <div class="group">            
-            <button onclick="fg('white')" style="background:white; width:20px; height:20px; border:1px solid #ffcc00"></button>            
-            <button onclick="fg('silver')" style="background:silver; width:20px; height:20px; border:1px solid #ffcc00"></button>            
-            <button onclick="fg('yellow')" style="background:yellow; width:20px; height:20px; border:1px solid #ffcc00"></button>            
-            <button onclick="fg('navy')" style="background:navy; width:20px; height:20px; border:1px solid #ffcc00"></button>            
-            <button onclick="fg('black')" style="background:black; width:20px; height:20px; border:1px solid #ffcc00"></button>        
-        </div>        
-        
-        <button onclick="cp()">Kopírovat</button>        
-        <button onclick="cl()" style="background:#600">Smazat</button>    
-    </div>    
-    
-    <div id="output-container">
-        <div id="output">Klikněte na START...</div>
-    </div>    
+        <button id="btn-toggle" onclick="toggle()" class="stopped">START</button>
 
+        <!-- Tlačítko na kafe -->
+        <button id="kafe" onclick="document.getElementById('coffee-modal').style.display='block'" title="Podpořte vývoj">
+            <img src="images/salek-20.png" alt="Káva">
+        </button>
+        
+        <div class="group">
+            <button onclick="sz(4)">Písmo +</button>
+            <button onclick="sz(-4)">Písmo -</button>
+        </div>
+        
+        <div class="group">
+            <button onclick="bg('black')" style="background:black; width:20px; height:20px; border:1px solid #ffcc00"></button>
+            <button onclick="bg('white')" style="background:white; width:20px; height:20px; border:1px solid #ffcc00"></button>
+            <button onclick="bg('navy')" style="background:navy; width:20px; height:20px; border:1px solid #ffcc00"></button>
+            <button onclick="bg('darkgreen')" style="background:darkgreen; width:20px; height:20px; border:1px solid #ffcc00"></button>
+        </div>
+        
+        <div class="group">
+            <button onclick="fg('white')" style="background:white; width:20px; height:20px; border:1px solid #ffcc00"></button>
+            <button onclick="fg('silver')" style="background:silver; width:20px; height:20px; border:1px solid #ffcc00"></button>
+            <button onclick="fg('yellow')" style="background:yellow; width:20px; height:20px; border:1px solid #ffcc00"></button>
+            <button onclick="fg('navy')" style="background:navy; width:20px; height:20px; border:1px solid #ffcc00"></button>
+            <button onclick="fg('black')" style="background:black; width:20px; height:20px; border:1px solid #ffcc00"></button>
+        </div>
+        
+        <button onclick="cp()">Kopírovat</button>
+        <button onclick="cl()" style="background:#600">Smazat</button>
+    </div>
+
+    <!-- QR Modal -->
+    <div id="coffee-modal" onclick="this.style.display='none'">
+        <div id="coffee-content" onclick="event.stopPropagation()">
+            <h3>Kratofon je zdarma</h3>
+            <p>Nicméně budu vděčný za jakoukoli podporu (třeba jen na kafe). Bude mě to motivovat do dalšího vývoje. Díky Kráťa</p>
+            <p>číslo účtu je 1953595183/0800 nebo QR platba<br>
+            <img src="images/qr-platba-150.png" alt="QR Platba">
+            <br>
+            <button onclick="document.getElementById('coffee-modal').style.display='none'">Zavřít</button><br><br>
+        </div>
+    </div>
+
+    <div id="output-container">
+        <div id="output">Klikněte na START...<br><br><p style="color: yellow; text-align: center; font-weight: bold">
+        Kratofon zatím funguje<br>pouze za stolních PC<br>a noteboocích, v prohlížečích<br>Chrome a Edge.</p>
+        </div>
+    </div>
+    
     <script>
         const out = document.getElementById('output');
         const btn = document.getElementById('btn-toggle');
@@ -163,13 +150,13 @@
         let lastResultTime = Date.now(); 
         let lastFinalLength = 0;
         const pauseLimit = 2500;
-        
+
         const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
         rec.lang = 'cs-CZ';
         rec.interimResults = true;
         rec.continuous = true;
         rec.maxAlternatives = 1;
-        
+
         function toggle() {
             if (run) {
                 rec.stop();
@@ -177,116 +164,65 @@
                 btn.innerText = "START";
                 btn.className = "stopped";
             } else { 
-                try { 
+                 try { 
                     rec.start();
                     run = true;
                     btn.innerText = "STOP";
                     btn.className = "running";
-                    if (out.innerText.includes("Klikněte")) {
+                    
+                    // Tato podmínka vyčistí úvodní návod i žluté varování
+                    if (out.innerText.includes("Klikněte") || out.innerText.includes("Kratofon zatím")) {
                         out.innerHTML = "";
                         finalTranscript = '';
-                        lastFinalLength = 0;
                     }
+                    
                     lastResultTime = Date.now();
-                } catch(e) {
-                    console.error('Chyba při startu:', e);
-                }
+                } catch(e) { console.error(e); }
             }
         }
-        
+
         rec.onresult = (e) => {
             let interimTranscript = '';
             let now = Date.now();
-            
-            // Přidej oddělovač po pauze
+
             if (now - lastResultTime > pauseLimit && finalTranscript !== '' && !finalTranscript.endsWith('<br><br>')) {
                 finalTranscript += '<br><br>';
-                lastFinalLength = finalTranscript.length;
             }
-            
             lastResultTime = now;
-            
-            // Zpracuj pouze nové výsledky
+
             for (let i = e.resultIndex; i < e.results.length; i++) {
                 const transcript = e.results[i][0].transcript;
-                
                 if (e.results[i].isFinal) {
-                    // Přidej mezeru pouze pokud text nekončí mezerou a není prázdný
                     if (finalTranscript && !finalTranscript.endsWith(' ') && !finalTranscript.endsWith('<br><br>')) {
                         finalTranscript += ' ';
                     }
                     finalTranscript += transcript;
-                    lastFinalLength = finalTranscript.length;
                 } else {
                     interimTranscript += transcript;
                 }
             }
-            
-            // Zobraz finální text + dočasný text
+
             if (interimTranscript) {
                 out.innerHTML = finalTranscript + '<span class="interim">' + interimTranscript + '</span>';
             } else {
                 out.innerHTML = finalTranscript;
             }
-            
-            // Automatický scroll
             cnt.scrollTop = cnt.scrollHeight;
         };
-        
-        rec.onend = () => {
-            if (run) {
-                try {
-                    setTimeout(() => {
-                        if (run) rec.start();
-                    }, 100);
-                } catch(e) {
-                    console.error('Restart error:', e);
-                }
-            }
-        };
-        
+
+        rec.onend = () => { if (run) setTimeout(() => { if (run) rec.start(); }, 100); };
         rec.onerror = (e) => {
-            console.error('Recognition error:', e.error);
-            if (e.error === 'not-allowed' || e.error === 'permission-denied') {
-                document.getElementById('help').style.display = "block";
-            }
-            if (e.error === 'no-speech' && run) {
-                // Ignoruj "no-speech" chyby, pokračuj dál
-                return;
-            }
+            if (e.error === 'not-allowed') document.getElementById('help').style.display = "block";
         };
-        
-        rec.onstart = () => {
-            console.log('Recognition started');
-        };
-        
-        function sz(d) {
-            let s = parseInt(window.getComputedStyle(out).fontSize);
-            out.style.fontSize = (s + d) + 'px';
-        }
-        
-        function bg(c) {
-            document.body.style.backgroundColor = c;
-        }
-        
-        function fg(c) {
-            out.style.color = c;
-        }
-        
-        function cl() {
-            finalTranscript = '';
-            lastFinalLength = 0;
-            out.innerHTML = '';
-        }
-        
+
+        function sz(d) { let s = parseInt(window.getComputedStyle(out).fontSize); out.style.fontSize = (s + d) + 'px'; }
+        function bg(c) { document.body.style.backgroundColor = c; }
+        function fg(c) { out.style.color = c; }
+        function cl() { finalTranscript = ''; out.innerHTML = ''; }
         function cp() {
-            const textToCopy = out.innerText;
-            navigator.clipboard.writeText(textToCopy).then(() => {
-                let t = btn.innerText;
-                btn.innerText = "OK!";
+            navigator.clipboard.writeText(out.innerText).then(() => {
+                let t = btn.innerText; btn.innerText = "OK!";
                 setTimeout(() => btn.innerText = t, 1000);
-            }).catch(err => {
-                console.error('Chyba kopírování:', err);
             });
         }
     </script>
