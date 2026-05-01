@@ -125,7 +125,7 @@
     <!-- QR Modal -->
     <div id="coffee-modal" onclick="this.style.display='none'">
         <div id="coffee-content" onclick="event.stopPropagation()">
-            <h3 style="color: #ffcc00">Kratofon je zdarma</h3>
+            <h3>Kratofon je zdarma</h3>
             <p>Nicméně budu vděčný za jakoukoli podporu (třeba jen na kafe). Bude mě to motivovat do dalšího vývoje. Díky Kráťa</p>
             <p>číslo účtu je 1953595183/0800 nebo QR platba<br>
             <img src="images/qr-platba-150.png" alt="QR Platba">
@@ -134,19 +134,10 @@
         </div>
     </div>
 
-<div id="output-container">        
-    <div id="output">Klikněte na START...
-        <br>
-        <br>
-        <p style="color: #ffcc00; text-align: center; font-weight: normal; font-size: 130%">        Kratofon zatím funguje
-            <br>pouze na stolních PC a noteboocích
-            <br>v prohlížečích Chrome a Edge.
-        </p>            
-        <div style="margin: 21px auto; text-align: center;width: 400px; padding: 0; border: 0">                
-            <iframe width="400" height="225" src="https://www.youtube.com/embed/eHDv967b1WQ?si=Ub6eLTOj77jm4PY-"                 title="Kratofon ukázka" frameborder="0" allow="accelerometer; autoplay;                      clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"                      referrerpolicy="strict-origin-when-cross-origin" allowfullscreen>                                     
-            </iframe> 
-         </div>          
-    </div>
+    <div id="output-container">
+        <div id="output">Klikněte na START...<br><br><p style="color: yellow; text-align: center; font-weight: bold">
+        Kratofon zatím funguje<br>pouze za stolních PC<br>a noteboocích, v prohlížečích<br>Chrome a Edge.</p>
+        </div>
     </div>
     
     <script>
@@ -172,21 +163,24 @@
                 run = false;
                 btn.innerText = "START";
                 btn.className = "stopped";
-            // ... (začátek funkce toggle)
-} else { 
-    try { 
-        rec.start();
-        run = true;
-        btn.innerText = "STOP";
-        btn.className = "running";
-        
-        // TATO ÚPRAVA: Vyčistí vše uvnitř 'out', včetně videa a textů
-        out.innerHTML = ""; 
-        finalTranscript = '';
-        
-        lastResultTime = Date.now();
-    } catch(e) { console.error(e); }
-}
+            } else { 
+                 try { 
+                    rec.start();
+                    run = true;
+                    btn.innerText = "STOP";
+                    btn.className = "running";
+                    
+                    // Tato podmínka vyčistí úvodní návod i žluté varování
+                    if (out.innerText.includes("Klikněte") || out.innerText.includes("Kratofon zatím")) {
+                        out.innerHTML = "";
+                        finalTranscript = '';
+                    }
+                    
+                    lastResultTime = Date.now();
+                } catch(e) { console.error(e); }
+            }
+        }
+
         rec.onresult = (e) => {
             let interimTranscript = '';
             let now = Date.now();
