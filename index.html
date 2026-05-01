@@ -142,9 +142,10 @@
             <br>pouze na stolních PC a noteboocích
             <br>v prohlížečích Chrome a Edge.
         </p>            
-        <o style="margin: 21px auto">                
-            <iframe width="450" height="253" src="https://www.youtube.com/embed/eHDv967b1WQ?si=Ub6eLTOj77jm4PY-"                 title="Kratofon ukázka" frameborder="0" allow="accelerometer; autoplay;                      clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"                      referrerpolicy="strict-origin-when-cross-origin" allowfullscreen>                                     
-            </iframe>        
+        <div style="margin: 21px auto; text-align: center;width: 400px; padding: 0; border: 0">                
+            <iframe width="400" height="225" src="https://www.youtube.com/embed/eHDv967b1WQ?si=Ub6eLTOj77jm4PY-"                 title="Kratofon ukázka" frameborder="0" allow="accelerometer; autoplay;                      clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"                      referrerpolicy="strict-origin-when-cross-origin" allowfullscreen>                                     
+            </iframe> 
+         </div>          
     </div>
     </div>
     
@@ -171,24 +172,21 @@
                 run = false;
                 btn.innerText = "START";
                 btn.className = "stopped";
-            } else { 
-                 try { 
-                    rec.start();
-                    run = true;
-                    btn.innerText = "STOP";
-                    btn.className = "running";
-                    
-                    // Tato podmínka vyčistí úvodní návod i žluté varování
-                    if (out.innerText.includes("Klikněte") || out.innerText.includes("Kratofon zatím")) {
-                        out.innerHTML = "";
-                        finalTranscript = '';
-                    }
-                    
-                    lastResultTime = Date.now();
-                } catch(e) { console.error(e); }
-            }
-        }
-
+            // ... (začátek funkce toggle)
+} else { 
+    try { 
+        rec.start();
+        run = true;
+        btn.innerText = "STOP";
+        btn.className = "running";
+        
+        // TATO ÚPRAVA: Vyčistí vše uvnitř 'out', včetně videa a textů
+        out.innerHTML = ""; 
+        finalTranscript = '';
+        
+        lastResultTime = Date.now();
+    } catch(e) { console.error(e); }
+}
         rec.onresult = (e) => {
             let interimTranscript = '';
             let now = Date.now();
