@@ -1,7 +1,6 @@
-<!DOCTYPE html>
+<!DOCTYPE html><!--plovouci-okno-salek-->
 <html lang="cs">
 <head>
-    <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-Z04Y4RZYFV"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -9,232 +8,817 @@
       gtag('js', new Date());
       gtag('config', 'G-Z04Y4RZYFV');
     </script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kratofon - elektronické ucho</title>
-    <meta name="description" content="Online přepis řeči zdarma – Kratofon převádí mluvené slovo na text v reálném čase. Webová aplikace pro neslyšící a nedoslýchavé, elektronické ucho.">
+
     <style>
-        body { 
-            background-color: black; color: white; font-family: sans-serif; margin: 0; 
-            display: flex; flex-direction: column; height: 100vh; overflow: hidden;
-            -webkit-user-select: none; user-select: none;
+        body {
+            background-color: black;
+            color: white;
+            font-family: sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 80vh;
+            overflow: hidden;
+            -webkit-user-select: none;
+            user-select: none;
         }
-        #controls { 
-            background: #1a1a1a; padding: 5px; display: flex; flex-wrap: wrap; 
-            gap: 8px; align-items: center; border-bottom: 1px solid #333; z-index: 100; flex-shrink: 0; 
-        }
-        .group { display: flex; gap: 4px; align-items: center; border-right: 1px solid #444; padding-right: 8px; }
-        button { 
-            padding: 6px 10px; cursor: pointer; background: #333; color: white; 
-            border: 1px solid #555; border-radius: 4px; font-weight: bold; font-size: 13px; touch-action: manipulation; 
-        }
-        #btn-toggle { min-width: 70px; }
-        .running { background: #2d5a27; }
-        .stopped { background: #b30000; }
-        #output-container { 
-            flex-grow: 1; padding: 10px 15px; overflow-y: auto; scroll-behavior: smooth;
-            -webkit-overflow-scrolling: touch; 
-        }
-        #output { 
-            font-size: 20px; line-height: 1.3; overflow-wrap: break-word; word-wrap: break-word;
-            padding-bottom: 25vh; user-select: text; -webkit-user-select: text; 
-        }
-        .interim { color: inherit; opacity: 1.0; }
-        #help { background: #b30000; color: white; padding: 5px; text-align: center; display: none; font-size: 14px; }
-        #controls img.logo { width: 100px; height: 35px; margin: 3px 11px 3px 19px; }
 
-        /* Kafe tlačítko */
+        #controls {
+            background: #1a1a1a;
+            padding: 5px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            border-bottom: 1px solid #333;
+            z-index: 100;
+            flex-shrink: 0;
+        }
+
+        .group {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            border-right: 1px solid #444;
+            padding-right: 8px;
+        }
+
+        button {
+            padding: 6px 10px;
+            cursor: pointer;
+            background: #333;
+            color: white;
+            border: 1px solid #555;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 13px;
+            touch-action: manipulation;
+        }
+
+        #btn-pip {
+            min-width: 185px;
+        }
+
+        .pip-open {
+            background: #2d5a27;
+        }
+
+        .active-lang {
+            border: 2px solid #ffcc00 !important;
+            background: #444;
+        }
+
+        #output-container {
+            flex-grow: 1;
+            padding: 10px 15px 64px 15px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+            display: flex;
+            gap: 20px;
+        }
+
+        .column {
+            flex: 1;
+            font-size: 20px;
+            line-height: 1.3;
+            padding-bottom: 164px;
+            user-select: text;
+            word-break: break-word;
+        }
+
+        #output-en {
+            border-right: 1px dashed #444;
+            padding-right: 15px;
+            display: none;
+        }
+
+        #controls img {
+            width: 100px;
+            height: 35px;
+            margin: 3px 11px 3px 19px;
+        }
+
+        #status-info {
+            font-size: 11px;
+            color: #ffcc00;
+            margin-left: 5px;
+            font-weight: bold;
+        }
+
+        .color-btn {
+            width: 20px;
+            height: 20px;
+            padding: 0;
+            border: 1px solid #ffcc00;
+        }
+
+        /* KÁVA */
         #kafe {
-            width: 32px; height: 31px; background-color: #333; border: 1px solid #ffcc00;
-            border-radius: 4px; cursor: pointer; display: inline-flex; align-items: center;
-            justify-content: center; vertical-align: middle; padding: 0;
+            width: 38px;
+            height: 34px;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #333;
+            border: 1px solid #555;
         }
-        #kafe img { width: 20px; height: 20px; }
-        #kafe:hover { background-color: #444; }
 
-        /* Modal okno */
+        /* Přepíše obecné pravidlo #controls img pro malé logo šálku. */
+        #controls #kafe img {
+            width: 20px;
+            height: 20px;
+            margin: 0;
+            object-fit: contain;
+        }
+
         #coffee-modal {
-            display: none; position: fixed; z-index: 1000; left: 0; top: 0; 
-            width: 100%; height: 100%; background-color: rgba(0,0,0,0.8);
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.72);
+            align-items: center;
+            justify-content: center;
         }
-        #coffee-content {
-    background-color: #222;
-    margin: 2% auto; /* Méně místa nahoře, aby zbyl prostor dole */
-    padding: 10px;
-    border: 1px solid #ffcc00;
-    width: 90%;
-    max-width: 350px;
-    text-align: center;
-    border-radius: 10px;
-    color: white;
-    /* Odstraněna pevná výška, pokud tam byla */
-}
 
-#coffee-content img {
-    width: auto;           /* Šířka se přizpůsobí */
-    max-width: 100%;       /* Nepřeteče box do stran */
-    height: auto;
-    max-height: 250px;     /* Tady to zkrotíme, aby QR kód nebyl moc vysoký */
-    margin: 15px 0;
-    background: white;
-    padding: 10px;
-    border-radius: 5px;
-    display: inline-block; /* Lepší vycentrování */
-}
+        #coffee-content {
+            width: min(420px, calc(100vw - 30px));
+            max-height: calc(100vh - 30px);
+            overflow-y: auto;
+            background: #1a1a1a;
+            color: white;
+            border: 1px solid #555;
+            border-radius: 8px;
+            padding: 18px 22px;
+            text-align: center;
+            box-shadow: 0 8px 30px rgba(0,0,0,.55);
+        }
+
+        #coffee-content h3 {
+            margin-top: 0;
+            color: #ffcc00;
+        }
+
+        #coffee-content p {
+            line-height: 1.45;
+        }
+
+        #coffee-content img {
+            width: 150px;
+            height: 150px;
+            margin: 10px auto;
+        }
+
+        #coffee-content button {
+            margin-top: 5px;
+        }
     </style>
 </head>
-<body>
-    <div id="help">Povolte mikrofon v adresním řádku prohlížeče!</div>
-    
-    <div id="controls">
-        <a href="https://lkrata.github.io/kratofon/" title="Aplikace na přepis řeči">
-            <img src="images/logo.png" class="logo" alt="Logo Kratofon">
-        </a>
-        
-        <button id="btn-toggle" onclick="toggle()" class="stopped">START</button>
 
-        <!-- Tlačítko na kafe -->
-        <button id="kafe" onclick="document.getElementById('coffee-modal').style.display='block'" title="Podpořte vývoj">
+<body>
+    <div id="controls">
+        <a href="https://lkrata.github.io/kratofon/">
+            <img src="images/logo.png" alt="Kratofon">
+        </a>
+
+        <button id="btn-pip" onclick="togglePip()">OTEVŘÍT OKNO S PŘEPISEM</button>
+
+        <button id="kafe"
+                onclick="document.getElementById('coffee-modal').style.display='flex'"
+                title="Podpořte vývoj">
             <img src="images/salek-20.png" alt="Káva">
         </button>
-        
+
+        <div class="group">
+            <button id="lang-cs" onclick="setLang('cs-CZ')" class="active-lang">Česky</button>
+            <button id="lang-en" onclick="setLang('en-US')">EN -> CZ</button>
+        </div>
+
         <div class="group">
             <button onclick="sz(4)">Písmo +</button>
             <button onclick="sz(-4)">Písmo -</button>
         </div>
-        
+
         <div class="group">
-            <button onclick="bg('black')" style="background:black; width:20px; height:20px; border:1px solid #ffcc00"></button>
-            <button onclick="bg('white')" style="background:white; width:20px; height:20px; border:1px solid #ffcc00"></button>
-            <button onclick="bg('navy')" style="background:navy; width:20px; height:20px; border:1px solid #ffcc00"></button>
-            <button onclick="bg('darkgreen')" style="background:darkgreen; width:20px; height:20px; border:1px solid #ffcc00"></button>
+            <button class="color-btn" onclick="bg('black')" style="background:black" title="Černé pozadí"></button>
+            <button class="color-btn" onclick="bg('white')" style="background:white" title="Bílé pozadí"></button>
+            <button class="color-btn" onclick="bg('navy')" style="background:navy" title="Modré pozadí"></button>
+            <button class="color-btn" onclick="bg('darkgreen')" style="background:darkgreen" title="Zelené pozadí"></button>
         </div>
-        
+
         <div class="group">
-            <button onclick="fg('white')" style="background:white; width:20px; height:20px; border:1px solid #ffcc00"></button>
-            <button onclick="fg('silver')" style="background:silver; width:20px; height:20px; border:1px solid #ffcc00"></button>
-            <button onclick="fg('yellow')" style="background:yellow; width:20px; height:20px; border:1px solid #ffcc00"></button>
-            <button onclick="fg('navy')" style="background:navy; width:20px; height:20px; border:1px solid #ffcc00"></button>
-            <button onclick="fg('black')" style="background:black; width:20px; height:20px; border:1px solid #ffcc00"></button>
+            <button class="color-btn" onclick="fg('white')" style="background:white" title="Bílé písmo"></button>
+            <button class="color-btn" onclick="fg('silver')" style="background:silver" title="Šedé písmo"></button>
+            <button class="color-btn" onclick="fg('yellow')" style="background:yellow" title="Žluté písmo"></button>
+            <button class="color-btn" onclick="fg('navy')" style="background:navy" title="Modré písmo"></button>
+            <button class="color-btn" onclick="fg('black')" style="background:black" title="Černé písmo"></button>
         </div>
-        
+
         <button onclick="cp()">Kopírovat</button>
         <button onclick="cl()" style="background:#600">Smazat</button>
+        <span id="status-info"></span>
     </div>
 
-    <!-- QR Modal -->
+    <!-- QR MODAL -->
     <div id="coffee-modal" onclick="this.style.display='none'">
         <div id="coffee-content" onclick="event.stopPropagation()">
             <h3>Kratofon je zdarma</h3>
-            <p>Nicméně budu vděčný za jakoukoli podporu (třeba jen na kafe). Bude mě to motivovat do dalšího vývoje. Díky Kráťa</p>
-            <p>číslo účtu je 1953595183/0800 nebo QR platba<br>
-            <img src="images/qr-platba-150.png" alt="QR Platba">
-            <br>
-            <button onclick="document.getElementById('coffee-modal').style.display='none'">Zavřít</button><br><br>
+            <p>
+                Nicméně budu vděčný za jakoukoli podporu (třeba jen na kafe).
+                Bude mě to motivovat do dalšího vývoje. Díky Kráťa
+            </p>
+            <p>
+                Číslo účtu je 1953595183/0800 nebo QR platba<br>
+                <img src="images/qr-platba-150.png" alt="QR Platba">
+            </p>
+            <button onclick="document.getElementById('coffee-modal').style.display='none'">
+                Zavřít
+            </button>
         </div>
     </div>
 
     <div id="output-container">
-        <div id="output">Klikněte na START...<br>
-        <p style="color: #ffcc00; text-align: center; font-weight: normal">
-        Kratofon zatím funguje<br>
-        pouze na stolních PC a noteboocích,<br>
-        v prohlížečích Edge a Chrome.<br>
-        přičemž Edge vrací mnohem lepší rozpoznání mluvy.
-        </p>
-        <iframe width="400" height="225" style="display: block; margin: 11px auto" src="https://www.youtube.com/embed/eHDv967b1WQ?si=RuOeJvyOepK43z2D"
-        title="Kratofon elektronické ucho v akci"
-        frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        referrerpolicy="strict-origin-when-cross-origin" allowfullscreen>
-        </iframe>
+        <div id="output-en" class="column"></div>
+
+        <div id="output" class="column">
+            Klikněte na OTEVŘÍT OKNO S PŘEPISEM...<br>
+
+            <p style="color:#ffcc00; text-align:center; font-weight:normal">
+                Kratofon zatím funguje<br>
+                pouze na stolních PC a noteboocích,<br>
+                v prohlížečích Edge a Chrome.<br>
+                přičemž Edge vrací mnohem lepší rozpoznání mluvy.
+            </p>
+
+            <iframe
+                width="400"
+                height="225"
+                style="display:block; margin:11px auto"
+                src="https://www.youtube.com/embed/eHDv967b1WQ?si=RuOeJvyOepK43z2D"
+                title="Kratofon elektronické ucho v akci"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerpolicy="strict-origin-when-cross-origin"
+                allowfullscreen>
+            </iframe>
         </div>
     </div>
-    
-    <script>
-        const out = document.getElementById('output');
-        const btn = document.getElementById('btn-toggle');
-        const cnt = document.getElementById('output-container');
-        
-        let run = false;
-        let finalTranscript = '';
-        let lastResultTime = Date.now(); 
-        let lastFinalLength = 0;
-        const pauseLimit = 2500;
 
-        const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+<script>
+    const out = document.getElementById('output');
+    const outEn = document.getElementById('output-en');
+    const cnt = document.getElementById('output-container');
+    const statusInfo = document.getElementById('status-info');
+    const pipMainButton = document.getElementById('btn-pip');
+
+    let run = false;
+    let translateMode = false;
+
+    let finalTranscript = '';
+    let finalTranscriptEn = '';
+    let lastResultTime = Date.now();
+    const pauseLimit = 2500;
+
+    let currentFontSize = 20;
+    let currentBg = 'black';
+    let currentFg = 'white';
+
+    let pipWindow = null;
+    let pipStartButton = null;
+    let pipOutputCz = null;
+    let pipOutputEn = null;
+    let pipSingleWrap = null;
+    let pipDualWrap = null;
+
+    const SpeechRecognition =
+        window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    let rec;
+
+    if (SpeechRecognition) {
+        rec = new SpeechRecognition();
         rec.lang = 'cs-CZ';
         rec.interimResults = true;
         rec.continuous = true;
-        rec.maxAlternatives = 1;
 
-        function toggle() {
-            if (run) {
-                rec.stop();
-                run = false;
-                btn.innerText = "START";
-                btn.className = "stopped";
-            } else { 
-                 try { 
-                    rec.start();
-                    run = true;
-                    btn.innerText = "STOP";
-                    btn.className = "running";
-                    
-                    // Tato podmínka vyčistí úvodní návod i žluté varování
-                    if (out.innerText.includes("Klikněte") || out.innerText.includes("Kratofon zatím")) {
-                        out.innerHTML = "";
-                        finalTranscript = '';
-                    }
-                    
-                    lastResultTime = Date.now();
-                } catch(e) { console.error(e); }
-            }
-        }
-
-        rec.onresult = (e) => {
+        rec.onresult = async (e) => {
             let interimTranscript = '';
-            let now = Date.now();
+            const now = Date.now();
 
-            if (now - lastResultTime > pauseLimit && finalTranscript !== '' && !finalTranscript.endsWith('<br><br>')) {
+            if (
+                now - lastResultTime > pauseLimit &&
+                finalTranscript !== '' &&
+                !finalTranscript.endsWith('<br><br>')
+            ) {
                 finalTranscript += '<br><br>';
+                finalTranscriptEn += '<br><br>';
             }
+
             lastResultTime = now;
 
             for (let i = e.resultIndex; i < e.results.length; i++) {
                 const transcript = e.results[i][0].transcript;
+
                 if (e.results[i].isFinal) {
-                    if (finalTranscript && !finalTranscript.endsWith(' ') && !finalTranscript.endsWith('<br><br>')) {
-                        finalTranscript += ' ';
+                    if (translateMode) {
+                        finalTranscriptEn +=
+                            (finalTranscriptEn &&
+                             !finalTranscriptEn.endsWith('<br><br>')
+                                ? '<br><br>'
+                                : '') + transcript;
+
+                        const translated = await translateText(transcript);
+
+                        finalTranscript +=
+                            (finalTranscript &&
+                             !finalTranscript.endsWith('<br><br>')
+                                ? '<br><br>'
+                                : '') + translated;
+                    } else {
+                        finalTranscript +=
+                            (finalTranscript &&
+                             !finalTranscript.endsWith('<br><br>')
+                                ? '<br><br>'
+                                : '') + transcript;
                     }
-                    finalTranscript += transcript;
                 } else {
                     interimTranscript += transcript;
                 }
             }
 
-            if (interimTranscript) {
-                out.innerHTML = finalTranscript + '<span class="interim">' + interimTranscript + '</span>';
-            } else {
-                out.innerHTML = finalTranscript;
+            renderOutputs(interimTranscript);
+        };
+
+        rec.onend = () => {
+            if (run) {
+                try {
+                    rec.start();
+                } catch (e) {}
             }
-            cnt.scrollTop = cnt.scrollHeight;
         };
 
-        rec.onend = () => { if (run) setTimeout(() => { if (run) rec.start(); }, 100); };
         rec.onerror = (e) => {
-            if (e.error === 'not-allowed') document.getElementById('help').style.display = "block";
+            if (e.error === 'aborted') return;
+            console.error('Speech Error:', e.error);
+            statusInfo.innerText = 'CHYBA: ' + e.error.toUpperCase();
         };
+    } else {
+        alert('Váš prohlížeč nepodporuje rozpoznávání řeči.');
+    }
 
-        function sz(d) { let s = parseInt(window.getComputedStyle(out).fontSize); out.style.fontSize = (s + d) + 'px'; }
-        function bg(c) { document.body.style.backgroundColor = c; }
-        function fg(c) { out.style.color = c; }
-        function cl() { finalTranscript = ''; out.innerHTML = ''; }
-        function cp() {
-            navigator.clipboard.writeText(out.innerText).then(() => {
-                let t = btn.innerText; btn.innerText = "OK!";
-                setTimeout(() => btn.innerText = t, 1000);
-            });
+    function escapeHtml(text) {
+        return text
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;');
+    }
+
+    function getCzHtml(interimTranscript = '') {
+        return finalTranscript + (
+            !translateMode && interimTranscript
+                ? '<br><br><span>' + escapeHtml(interimTranscript) + '</span>'
+                : ''
+        );
+    }
+
+    function getEnHtml(interimTranscript = '') {
+        return finalTranscriptEn + (
+            interimTranscript
+                ? '<br><br><span style="color: yellow;">' +
+                  escapeHtml(interimTranscript) +
+                  '</span>'
+                : ''
+        );
+    }
+
+    function renderOutputs(interimTranscript = '') {
+        if (translateMode) {
+            outEn.innerHTML = getEnHtml(interimTranscript);
+            out.innerHTML = finalTranscript;
+        } else {
+            out.innerHTML = getCzHtml(interimTranscript);
         }
-    </script>
+
+        cnt.scrollTop = cnt.scrollHeight;
+        renderPip(interimTranscript);
+    }
+
+    function renderPip(interimTranscript = '') {
+        if (!pipWindow || pipWindow.closed) return;
+
+        if (translateMode) {
+            if (pipSingleWrap) pipSingleWrap.style.display = 'none';
+            if (pipDualWrap) pipDualWrap.style.display = 'grid';
+
+            if (pipOutputEn) {
+                pipOutputEn.innerHTML = getEnHtml(interimTranscript);
+                pipOutputEn.scrollTop = pipOutputEn.scrollHeight;
+            }
+
+            if (pipOutputCz) {
+                pipOutputCz.innerHTML = finalTranscript;
+                pipOutputCz.scrollTop = pipOutputCz.scrollHeight;
+            }
+        } else {
+            if (pipDualWrap) pipDualWrap.style.display = 'none';
+            if (pipSingleWrap) {
+                pipSingleWrap.style.display = 'block';
+                pipSingleWrap.innerHTML = getCzHtml(interimTranscript);
+                pipSingleWrap.scrollTop = pipSingleWrap.scrollHeight;
+            }
+        }
+    }
+
+    function setLang(l) {
+        translateMode = (l === 'en-US');
+
+        if (rec) rec.lang = l;
+
+        document.getElementById('lang-cs').className =
+            (l === 'cs-CZ' ? 'active-lang' : '');
+
+        document.getElementById('lang-en').className =
+            (l === 'en-US' ? 'active-lang' : '');
+
+        outEn.style.display = translateMode ? 'block' : 'none';
+
+        if (!translateMode) {
+            outEn.innerHTML = '';
+        }
+
+        if (run) {
+            try { rec.stop(); } catch (e) {}
+        }
+
+        renderOutputs('');
+    }
+
+    async function translateText(text) {
+        if (!text.trim()) return text;
+
+        try {
+            statusInfo.innerText = 'PŘEKLÁDÁM...';
+            const res = await fetch(
+                'https://translate.googleapis.com/translate_a/single' +
+                '?client=gtx&sl=en&tl=cs&dt=t&q=' +
+                encodeURIComponent(text)
+            );
+            const data = await res.json();
+            statusInfo.innerText = '';
+
+            if (data && data[0]) {
+                return data[0].map(item => item[0]).join('');
+            }
+            return text;
+        } catch (e) {
+            statusInfo.innerText = 'CHYBA PŘEKLADU';
+            return text;
+        }
+    }
+
+    async function togglePip() {
+        if (pipWindow && !pipWindow.closed) {
+            pipWindow.close();
+            return;
+        }
+
+        if (!('documentPictureInPicture' in window)) {
+            alert(
+                'Plovoucí okno není v tomto prohlížeči podporováno. ' +
+                'Použijte aktuální Microsoft Edge nebo Google Chrome.'
+            );
+            return;
+        }
+
+        try {
+            pipWindow = await documentPictureInPicture.requestWindow({
+                width: 850,
+                height: 300
+            });
+
+            buildPipWindow();
+
+            pipMainButton.innerText = 'ZAVŘÍT OKNO S PŘEPISEM';
+            pipMainButton.classList.add('pip-open');
+
+            pipWindow.addEventListener('pagehide', () => {
+                if (run) {
+                    stopRecognition();
+                }
+
+                pipWindow = null;
+                pipStartButton = null;
+                pipOutputCz = null;
+                pipOutputEn = null;
+                pipSingleWrap = null;
+                pipDualWrap = null;
+
+                pipMainButton.innerText = 'OTEVŘÍT OKNO S PŘEPISEM';
+                pipMainButton.classList.remove('pip-open');
+            });
+
+        } catch (e) {
+            console.error(e);
+            alert('Plovoucí okno se nepodařilo otevřít.');
+        }
+    }
+
+    function buildPipWindow() {
+        const doc = pipWindow.document;
+
+        doc.head.innerHTML = `
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>
+                * { box-sizing: border-box; }
+
+                html, body {
+                    margin: 0;
+                    width: 100%;
+                    height: 100%;
+                    overflow: hidden;
+                    font-family: Arial, Helvetica, sans-serif;
+                    background: ${currentBg};
+                    color: ${currentFg};
+                }
+
+                body {
+                    display: flex;
+                }
+
+                #pip-main {
+                    flex: 1;
+                    min-width: 0;
+                    height: 100%;
+                    overflow: hidden;
+                    background: ${currentBg};
+                    color: ${currentFg};
+                }
+
+                #pip-output-single,
+                .pip-col {
+                    height: 100%;
+                    overflow-y: auto;
+                    padding: 12px 14px;
+                    font-size: ${currentFontSize}px;
+                    line-height: 1.30;
+                    word-break: break-word;
+                    user-select: text;
+                    scroll-behavior: smooth;
+                    scrollbar-width: none;
+                }
+
+                #pip-output-single {
+                    display: block;
+                }
+
+                #pip-output-dual {
+                    display: none;
+                    height: 100%;
+                    grid-template-columns: 1fr 1fr;
+                }
+
+                #pip-output-en {
+                    border-right: 2px solid #ffcc00;
+                }
+
+                #pip-placeholder {
+                    opacity: 0.75;
+                }
+
+                #pip-panel {
+                    width: 45px;
+                    flex: 0 0 45px;
+                    height: 100%;
+                    padding: 6px 4px;
+                    background: #222;
+                    border-left: 1px solid #555;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 6px;
+                }
+
+                #pip-panel button {
+                    cursor: pointer;
+                    color: white;
+                    background: #333;
+                    border: 1px solid #666;
+                    border-radius: 5px;
+                    font-weight: bold;
+                    font-family: Arial, Helvetica, sans-serif;
+                }
+
+                .icon-btn {
+                    width: 30px;
+                    height: 30px;
+                    padding: 0;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 17px;
+                    line-height: 1;
+                }
+
+                #pip-start {
+                    background: #168c20;
+                    font-size: 15px;
+                }
+
+                #pip-start.running {
+                    background: #a00000;
+                }
+
+                .divider {
+                    width: 26px;
+                    height: 1px;
+                    background: #555;
+                    margin: 2px 0;
+                }
+            </style>
+        `;
+
+        doc.body.innerHTML = `
+            <div id="pip-main">
+                <div id="pip-output-single">
+                    <span id="pip-placeholder">
+                        Nastavte velikost a umístění okna a klikněte na START.
+                    </span>
+                </div>
+
+                <div id="pip-output-dual">
+                    <div id="pip-output-en" class="pip-col"></div>
+                    <div id="pip-output-cz" class="pip-col"></div>
+                </div>
+            </div>
+
+            <div id="pip-panel">
+                <button id="pip-start" class="icon-btn" title="Start / Stop">▶</button>
+                <div class="divider"></div>
+                <button id="pip-plus" class="icon-btn" title="Větší písmo">+</button>
+                <button id="pip-minus" class="icon-btn" title="Menší písmo">−</button>
+            </div>
+        `;
+
+        pipStartButton = doc.getElementById('pip-start');
+        pipSingleWrap = doc.getElementById('pip-output-single');
+        pipDualWrap = doc.getElementById('pip-output-dual');
+        pipOutputCz = doc.getElementById('pip-output-cz');
+        pipOutputEn = doc.getElementById('pip-output-en');
+
+        pipStartButton.addEventListener('click', toggleRecognition);
+        doc.getElementById('pip-plus').addEventListener('click', () => sz(4));
+        doc.getElementById('pip-minus').addEventListener('click', () => sz(-4));
+
+        applyPipAppearance();
+
+        if (finalTranscript || finalTranscriptEn) {
+            renderOutputs('');
+        }
+    }
+
+    function updatePipStartButton() {
+        if (!pipStartButton) return;
+
+        if (run) {
+            pipStartButton.innerText = '■';
+            pipStartButton.title = 'Stop';
+            pipStartButton.classList.add('running');
+        } else {
+            pipStartButton.innerText = '▶';
+            pipStartButton.title = 'Start';
+            pipStartButton.classList.remove('running');
+        }
+    }
+
+    function toggleRecognition() {
+        if (!rec) return;
+        if (run) {
+            stopRecognition();
+        } else {
+            startRecognition();
+        }
+    }
+
+    function startRecognition() {
+        try {
+            rec.start();
+            run = true;
+            updatePipStartButton();
+
+            if (out.innerText.includes('Klikněte na OTEVŘÍT')) {
+                out.innerHTML = '';
+                outEn.innerHTML = '';
+            }
+
+            if (pipSingleWrap &&
+                pipSingleWrap.innerText.includes('Nastavte velikost a umístění')) {
+                pipSingleWrap.innerHTML = '';
+            }
+
+            lastResultTime = Date.now();
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    function stopRecognition() {
+        run = false;
+        try { rec.stop(); } catch (e) {}
+        updatePipStartButton();
+    }
+
+    function sz(d) {
+        currentFontSize = Math.max(12, Math.min(72, currentFontSize + d));
+
+        out.style.fontSize = currentFontSize + 'px';
+        outEn.style.fontSize = currentFontSize + 'px';
+
+        applyPipAppearance();
+    }
+
+    function bg(c) {
+        currentBg = c;
+        document.body.style.backgroundColor = c;
+        cnt.style.backgroundColor = c;
+        applyPipAppearance();
+    }
+
+    function fg(c) {
+        currentFg = c;
+        out.style.color = c;
+        outEn.style.color = c;
+        applyPipAppearance();
+    }
+
+    function applyPipAppearance() {
+        if (!pipWindow || pipWindow.closed) return;
+
+        pipWindow.document.body.style.backgroundColor = currentBg;
+        pipWindow.document.body.style.color = currentFg;
+
+        if (pipSingleWrap) {
+            pipSingleWrap.style.backgroundColor = currentBg;
+            pipSingleWrap.style.color = currentFg;
+            pipSingleWrap.style.fontSize = currentFontSize + 'px';
+        }
+
+        if (pipOutputCz) {
+            pipOutputCz.style.backgroundColor = currentBg;
+            pipOutputCz.style.color = currentFg;
+            pipOutputCz.style.fontSize = currentFontSize + 'px';
+        }
+
+        if (pipOutputEn) {
+            pipOutputEn.style.backgroundColor = currentBg;
+            pipOutputEn.style.color = currentFg;
+            pipOutputEn.style.fontSize = currentFontSize + 'px';
+        }
+
+        updatePipStartButton();
+    }
+
+    function cl() {
+        finalTranscript = '';
+        finalTranscriptEn = '';
+        out.innerHTML = '';
+        outEn.innerHTML = '';
+
+        if (pipSingleWrap) {
+            pipSingleWrap.innerHTML = '';
+        }
+        if (pipOutputCz) {
+            pipOutputCz.innerHTML = '';
+        }
+        if (pipOutputEn) {
+            pipOutputEn.innerHTML = '';
+        }
+    }
+
+    function cp() {
+        const textToCopy = translateMode
+            ? `EN:\n${outEn.innerText}\n\nCZ:\n${out.innerText}`
+            : out.innerText;
+
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            const old = pipMainButton.innerText;
+            pipMainButton.innerText = 'OK!';
+
+            setTimeout(() => {
+                if (pipWindow && !pipWindow.closed) {
+                    pipMainButton.innerText = 'ZAVŘÍT OKNO S PŘEPISEM';
+                } else {
+                    pipMainButton.innerText = 'OTEVŘÍT OKNO S PŘEPISEM';
+                }
+            }, 1000);
+        });
+    }
+</script>
+
 </body>
 </html>
