@@ -1,4 +1,4 @@
-<!DOCTYPE html><!--plovouci-okno-salek-->
+<!DOCTYPE html><!--start na hl-plovouci-okno-salek-->
 <html lang="cs">
 <head>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-Z04Y4RZYFV"></script>
@@ -59,12 +59,27 @@
             touch-action: manipulation;
         }
 
+        #btn-toggle {
+            min-width: 70px;
+            background: #168c20;
+        }
+
+        #btn-toggle.running {
+            background: #a00000;
+        }
+
         #btn-pip {
             min-width: 185px;
+            background: #168c20;
+        }
+
+        #btn-pip:hover,
+        #btn-toggle:hover {
+            filter: brightness(1.15);
         }
 
         .pip-open {
-            background: #2d5a27;
+            background: #2d5a27 !important;
         }
 
         .active-lang {
@@ -186,7 +201,8 @@
             <img src="images/logo.png" alt="Kratofon">
         </a>
 
-        <button id="btn-pip" onclick="togglePip()">OTEVŘÍT OKNO S PŘEPISEM</button>
+        <button id="btn-toggle" onclick="toggleRecognition()">START</button>
+        <button id="btn-pip" onclick="togglePip()">OTEVŘÍT PLOVOUCÍ OKNO</button>
 
         <button id="kafe"
                 onclick="document.getElementById('coffee-modal').style.display='flex'"
@@ -246,7 +262,7 @@
         <div id="output-en" class="column"></div>
 
         <div id="output" class="column">
-            Klikněte na OTEVŘÍT OKNO S PŘEPISEM...<br>
+            Klikněte na START...<br>
 
             <p style="color:#ffcc00; text-align:center; font-weight:normal">
                 Kratofon zatím funguje<br>
@@ -274,6 +290,7 @@
     const outEn = document.getElementById('output-en');
     const cnt = document.getElementById('output-container');
     const statusInfo = document.getElementById('status-info');
+    const mainStartButton = document.getElementById('btn-toggle');
     const pipMainButton = document.getElementById('btn-pip');
 
     let run = false;
@@ -503,14 +520,12 @@
 
             buildPipWindow();
 
-            pipMainButton.innerText = 'ZAVŘÍT OKNO S PŘEPISEM';
+            pipMainButton.innerText = 'ZAVŘÍT PLOVOUCÍ OKNO';
             pipMainButton.classList.add('pip-open');
 
             pipWindow.addEventListener('pagehide', () => {
-                if (run) {
-                    stopRecognition();
-                }
-
+                // Plovoucí okno je jen druhý pohled na tentýž přepis.
+                // Jeho zavření proto rozpoznávání řeči nezastaví.
                 pipWindow = null;
                 pipStartButton = null;
                 pipOutputCz = null;
@@ -518,8 +533,10 @@
                 pipSingleWrap = null;
                 pipDualWrap = null;
 
-                pipMainButton.innerText = 'OTEVŘÍT OKNO S PŘEPISEM';
+                pipMainButton.innerText = 'OTEVŘÍT PLOVOUCÍ OKNO';
                 pipMainButton.classList.remove('pip-open');
+
+                updatePipStartButton();
             });
 
         } catch (e) {
@@ -683,16 +700,28 @@
     }
 
     function updatePipStartButton() {
-        if (!pipStartButton) return;
+        // Hlavní START/STOP
+        if (mainStartButton) {
+            if (run) {
+                mainStartButton.innerText = 'STOP';
+                mainStartButton.classList.add('running');
+            } else {
+                mainStartButton.innerText = 'START';
+                mainStartButton.classList.remove('running');
+            }
+        }
 
-        if (run) {
-            pipStartButton.innerText = '■';
-            pipStartButton.title = 'Stop';
-            pipStartButton.classList.add('running');
-        } else {
-            pipStartButton.innerText = '▶';
-            pipStartButton.title = 'Start';
-            pipStartButton.classList.remove('running');
+        // START/STOP v plovoucím okně
+        if (pipStartButton) {
+            if (run) {
+                pipStartButton.innerText = '■';
+                pipStartButton.title = 'Stop';
+                pipStartButton.classList.add('running');
+            } else {
+                pipStartButton.innerText = '▶';
+                pipStartButton.title = 'Start';
+                pipStartButton.classList.remove('running');
+            }
         }
     }
 
@@ -711,7 +740,10 @@
             run = true;
             updatePipStartButton();
 
-            if (out.innerText.includes('Klikněte na OTEVŘÍT')) {
+            if (
+                out.innerText.includes('Klikněte na START') ||
+                out.innerText.includes('Klikněte na OTEVŘÍT')
+            ) {
                 out.innerHTML = '';
                 outEn.innerHTML = '';
             }
@@ -811,9 +843,9 @@
 
             setTimeout(() => {
                 if (pipWindow && !pipWindow.closed) {
-                    pipMainButton.innerText = 'ZAVŘÍT OKNO S PŘEPISEM';
+                    pipMainButton.innerText = 'ZAVŘÍT PLOVOUCÍ OKNO';
                 } else {
-                    pipMainButton.innerText = 'OTEVŘÍT OKNO S PŘEPISEM';
+                    pipMainButton.innerText = 'OTEVŘÍT PLOVOUCÍ OKNO';
                 }
             }, 1000);
         });
