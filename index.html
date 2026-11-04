@@ -1,4 +1,4 @@
-<!DOCTYPE html><!--start na hl-plovouci-okno-salek-->
+<!DOCTYPE html><!--CZ_SK_EN-->
 <html lang="cs">
 <head>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-Z04Y4RZYFV"></script>
@@ -11,6 +11,7 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Bezplatný živý přepis češtiny, slovenštiny a angličtiny s volitelným překladem a plovoucím oknem. Kratofon funguje bez instalace a registrace.">
     <title>Kratofon - elektronické ucho</title>
 
     <style>
@@ -209,9 +210,16 @@
             <img src="images/salek-20.png" alt="Káva">
         </button>
 
+        <a aria-label="Napsat Kráťovi" title="Napsat Kráťovi" href="mailto:kratofon@gmail.com?subject=Kratofon" style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:32px;border:1px solid #555;border-radius:4px;background:#333;color:#ffcc00">
+            <svg width="24" height="22" viewBox="0 0 28 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="m3 5 9 7 9-7"/><g fill="#333"><circle cx="16" cy="17" r="4"/><path d="M16 20c4 0 6-4 8-7l2 8c-3-2-6-2-10-1Z"/></g></svg>
+        </a>
         <div class="group">
-            <button id="lang-cs" onclick="setLang('cs-CZ')" class="active-lang">Česky</button>
-            <button id="lang-en" onclick="setLang('en-US')">EN -> CZ</button>
+            <button id="lang-cs" onclick="setLang('cs-CZ')" class="active-lang" aria-pressed="true" title="Česky" aria-label="Česky">CZ</button>
+            <button id="lang-sk" onclick="setLang('sk-SK')" aria-pressed="false" title="Slovensky" aria-label="Slovensky">SK</button>
+            <button id="lang-en" onclick="setLang('en-US')" aria-pressed="false" title="Anglicky" aria-label="Anglicky">EN</button>
+            <button id="btn-translate" onclick="toggleTranslation()" aria-pressed="false" hidden>Překlad</button>
+            <button id="main-swap" hidden onclick="swapLanguages()" title="Prohodit jazyky" aria-label="Prohodit jazyky">↔</button>
+            <span id="main-pair" aria-live="polite">CZ</span>
         </div>
 
         <div class="group">
@@ -234,8 +242,8 @@
             <button class="color-btn" onclick="fg('black')" style="background:black" title="Černé písmo"></button>
         </div>
 
-        <button onclick="cp()">Kopírovat</button>
-        <button onclick="cl()" style="background:#600">Smazat</button>
+        <button onclick="cp()" title="Kopírovat přepis" aria-label="Kopírovat přepis"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="vertical-align:middle"><rect x="8" y="8" width="13" height="14" rx="2"/><path d="M5 16H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1"/></svg></button>
+        <button onclick="cl()" style="background:#600" title="Smazat přepis" aria-label="Smazat přepis">✕</button>
         <span id="status-info"></span>
     </div>
 
@@ -269,7 +277,7 @@
         <div id="output-en" class="column"></div>
 
         <div id="output" class="column">
-            Klikněte na START...<br>
+            Klikněte na START pro český přepis. Pro jiný jazyk nejdřív vyberte jazyk řeči. Překlad zapnete tlačítkem Překlad. Cílem je čeština; jiný cílový jazyk vyberte jako druhý. Tlačítko ↔ prohodí směr.<br>
 
             <p style="color:#ffcc00; text-align:center; font-weight:normal">
                 Kratofon zatím funguje<br>
@@ -302,6 +310,19 @@
 
     let run = false;
     let translateMode = false;
+    let currentLang = 'cs-CZ';
+    let reversed = false;
+    let secondLang = 'cs-CZ';
+    let choosingTarget = false;
+    const sourceLang = () => reversed ? secondLang : currentLang;
+    const targetLang = () => reversed ? currentLang : secondLang;
+    const pairLabel = () => sourceLang() === targetLang() ? shortLang(sourceLang()) : shortLang(sourceLang()) + ' → ' + shortLang(targetLang());
+    const shortLang = lang => lang === 'cs-CZ' ? 'CZ' : lang.split('-')[0].toUpperCase();
+    let sessionLang = 'cs-CZ';
+    let switchingLanguage = false;
+    let interimText = '';
+    let segments = [];
+    let hasStarted = false;
 
     let finalTranscript = '';
     let finalTranscriptEn = '';
@@ -330,55 +351,26 @@
         rec.interimResults = true;
         rec.continuous = true;
 
-        rec.onresult = async (e) => {
-            let interimTranscript = '';
-            const now = Date.now();
-
-            if (
-                now - lastResultTime > pauseLimit &&
-                finalTranscript !== '' &&
-                !finalTranscript.endsWith('<br><br>')
-            ) {
-                finalTranscript += '<br><br>';
-                finalTranscriptEn += '<br><br>';
-            }
-
-            lastResultTime = now;
-
+        rec.onresult = (e) => {
+            if (switchingLanguage) return;
+            interimText = '';
             for (let i = e.resultIndex; i < e.results.length; i++) {
-                const transcript = e.results[i][0].transcript;
-
+                const text = e.results[i][0].transcript;
                 if (e.results[i].isFinal) {
-                    if (translateMode) {
-                        finalTranscriptEn +=
-                            (finalTranscriptEn &&
-                             !finalTranscriptEn.endsWith('<br><br>')
-                                ? '<br><br>'
-                                : '') + transcript;
-
-                        const translated = await translateText(transcript);
-
-                        finalTranscript +=
-                            (finalTranscript &&
-                             !finalTranscript.endsWith('<br><br>')
-                                ? '<br><br>'
-                                : '') + translated;
-                    } else {
-                        finalTranscript +=
-                            (finalTranscript &&
-                             !finalTranscript.endsWith('<br><br>')
-                                ? '<br><br>'
-                                : '') + transcript;
-                    }
+                    const segment = { text, lang: sessionLang, target: targetLang(), translated: null, pending: false, failed: false };
+                    segments.push(segment);
+                    if (translateMode) translateSegment(segment);
                 } else {
-                    interimTranscript += transcript;
+                    interimText += text;
                 }
             }
-
-            renderOutputs(interimTranscript);
+            renderOutputs();
         };
 
         rec.onend = () => {
+            switchingLanguage = false;
+            rec.lang = sourceLang();
+            sessionLang = sourceLang();
             if (run) {
                 try {
                     rec.start();
@@ -389,6 +381,10 @@
         rec.onerror = (e) => {
             if (e.error === 'aborted') return;
             console.error('Speech Error:', e.error);
+            if (['not-allowed', 'service-not-allowed', 'language-not-supported'].includes(e.error)) {
+                run = false;
+                updatePipStartButton();
+            }
             statusInfo.innerText = 'CHYBA: ' + e.error.toUpperCase();
         };
     } else {
@@ -420,7 +416,11 @@
         );
     }
 
-    function renderOutputs(interimTranscript = '') {
+    function renderOutputs(interimTranscript = interimText) {
+        finalTranscriptEn = segments.map(s => escapeHtml(s.text)).join('<br><br>');
+        finalTranscript = translateMode
+            ? segments.map(s => escapeHtml(s.lang === s.target ? s.text : (s.translated ?? (s.failed ? '[Překlad se nezdařil]' : '…')))).join('<br><br>')
+            : finalTranscriptEn;
         if (translateMode) {
             outEn.innerHTML = getEnHtml(interimTranscript);
             out.innerHTML = finalTranscript;
@@ -432,7 +432,7 @@
         renderPip(interimTranscript);
     }
 
-    function renderPip(interimTranscript = '') {
+    function renderPip(interimTranscript = interimText) {
         if (!pipWindow || pipWindow.closed) return;
 
         if (translateMode) {
@@ -458,51 +458,130 @@
         }
     }
 
-    function setLang(l) {
-        translateMode = (l === 'en-US');
-
-        if (rec) rec.lang = l;
-
-        document.getElementById('lang-cs').className =
-            (l === 'cs-CZ' ? 'active-lang' : '');
-
-        document.getElementById('lang-en').className =
-            (l === 'en-US' ? 'active-lang' : '');
-
-        outEn.style.display = translateMode ? 'block' : 'none';
-
-        if (!translateMode) {
-            outEn.innerHTML = '';
-        }
-
-        if (run) {
-            try { rec.stop(); } catch (e) {}
-        }
-
-        renderOutputs('');
+    function updatePipTranslationButton() {
+        if (!pipWindow || pipWindow.closed) return;
+        const button = pipWindow.document.getElementById('pip-translate');
+        if (!button) return;
+        button.hidden = currentLang === secondLang;
+        button.classList.toggle('translation-on', translateMode);
+        button.setAttribute('aria-pressed', String(translateMode));
+        pipWindow.document.getElementById('pip-pair').textContent = pairLabel();
+        button.textContent = '→ ' + shortLang(targetLang());
+        const swap = pipWindow.document.getElementById('pip-swap');
+        swap.hidden = button.hidden;
+        swap.setAttribute('aria-pressed', String(reversed));
+        swap.classList.toggle('translation-on', reversed);
+        swap.title = 'Prohodit jazyky. Nyní: ' + shortLang(sourceLang()) + ' → ' + shortLang(targetLang());
+        swap.setAttribute('aria-label', swap.title);
+        const label = (translateMode ? 'Vypnout překlad: ' : 'Zapnout překlad: ') + shortLang(sourceLang()) + ' → ' + shortLang(targetLang());
+        button.title = label;
+        button.setAttribute('aria-label', label);
     }
 
-    async function translateText(text) {
-        if (!text.trim()) return text;
+    function updateLanguageControls() {
+        for (const [id, lang] of [['cs', 'cs-CZ'], ['sk', 'sk-SK'], ['en', 'en-US']]) {
+            const button = document.getElementById('lang-' + id);
+            const selected = lang === currentLang || lang === secondLang;
+            button.classList.toggle('active-lang', selected);
+            button.setAttribute('aria-pressed', String(selected));
+        }
+        const button = document.getElementById('btn-translate');
+        button.hidden = currentLang === secondLang;
+        button.classList.toggle('active-lang', translateMode);
+        button.setAttribute('aria-pressed', String(translateMode));
+        button.textContent = translateMode ? '✓ Překlad' : 'Překlad';
+        button.title = 'Zobrazit originál a překlad: ' + shortLang(sourceLang()) + ' → ' + shortLang(targetLang());
+        document.getElementById('main-swap').hidden = currentLang === secondLang;
+        document.getElementById('main-pair').textContent = pairLabel();
+        outEn.style.display = translateMode ? 'block' : 'none';
+        updatePipTranslationButton();
+    }
 
+    function setLang(lang) {
+        if (choosingTarget && lang !== currentLang) {
+            secondLang = lang;
+            choosingTarget = false;
+        } else {
+            currentLang = lang;
+            secondLang = 'cs-CZ';
+            choosingTarget = true;
+        }
+        reversed = false;
+        if (currentLang === secondLang) translateMode = false;
+        applyDirection();
+    }
+
+    function swapLanguages() {
+        if (currentLang === secondLang) return;
+        choosingTarget = false;
+        reversed = !reversed;
+        translateMode = true;
+        applyDirection();
+        segments.forEach(translateSegment);
+    }
+
+    function applyDirection() {
+        const lang = sourceLang();
+        interimText = '';
+        if (rec) {
+            rec.lang = lang;
+            if (run) {
+                switchingLanguage = true;
+                try { rec.abort(); } catch (e) { switchingLanguage = false; }
+            } else {
+                sessionLang = lang;
+            }
+        }
+        updateLanguageControls();
+        if (hasStarted || segments.length) renderOutputs();
+        else renderPip();
+    }
+
+    function toggleTranslation() {
+        if (currentLang === secondLang) return;
+        choosingTarget = false;
+        translateMode = !translateMode;
+        updateLanguageControls();
+        if (translateMode) segments.forEach(translateSegment);
+        renderOutputs();
+    }
+
+    async function translateSegment(segment) {
+        if (segment.lang === segment.target || segment.translated !== null || segment.pending) return;
+        segment.pending = true;
+        segment.failed = false;
+        updateTranslationStatus();
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 15000);
         try {
-            statusInfo.innerText = 'PŘEKLÁDÁM...';
+            const source = segment.lang.split('-')[0];
             const res = await fetch(
                 'https://translate.googleapis.com/translate_a/single' +
-                '?client=gtx&sl=en&tl=cs&dt=t&q=' +
-                encodeURIComponent(text)
+                '?client=gtx&sl=' + source + '&tl=' + segment.target.split('-')[0] + '&dt=t&q=' + encodeURIComponent(segment.text),
+                { signal: controller.signal }
             );
+            if (!res.ok) throw new Error('Translation HTTP ' + res.status);
             const data = await res.json();
-            statusInfo.innerText = '';
-
-            if (data && data[0]) {
-                return data[0].map(item => item[0]).join('');
-            }
-            return text;
+            if (!Array.isArray(data?.[0])) throw new Error('Invalid translation');
+            const translated = data[0].map(item => item[0] || '').join('');
+            if (!translated.trim()) throw new Error('Empty translation');
+            segment.translated = translated;
         } catch (e) {
-            statusInfo.innerText = 'CHYBA PŘEKLADU';
-            return text;
+            segment.failed = true;
+        } finally {
+            clearTimeout(timer);
+            segment.pending = false;
+            // Smazaný přepis nesmí pozdní odpověď znovu zobrazit.
+            if (segments.includes(segment)) {
+                updateTranslationStatus();
+                renderOutputs();
+            }
         }
+    }
+
+    function updateTranslationStatus() {
+        statusInfo.innerText = segments.some(s => s.pending) ? 'PŘEKLÁDÁM...'
+            : segments.some(s => s.failed) ? 'CHYBA PŘEKLADU' : '';
     }
 
     async function togglePip() {
@@ -571,7 +650,9 @@
                     color: ${currentFg};
                 }
 
+                #pip-pair { position:absolute; top:0; left:0; right:0; height:20px; padding:2px 8px; font:bold 13px sans-serif; background:#222; color:white; }
                 body {
+                    padding-top:20px;
                     display: flex;
                 }
 
@@ -649,6 +730,22 @@
                     line-height: 1;
                 }
 
+                #pip-translate {
+                    font-size: 9px;
+                    white-space: nowrap;
+                }
+
+                #pip-swap[hidden], #pip-translate[hidden] { display: none; }
+
+                #pip-swap.translation-on, #pip-translate.translation-on {
+                    border: 2px solid #ffcc00;
+                    color: #ffcc00;
+                    background: #444;
+                }
+
+                #pip-panel { overflow-y: auto; }
+                #pip-panel button, #pip-panel .divider { flex-shrink: 0; }
+
                 #pip-start {
                     background: #168c20;
                     font-size: 15px;
@@ -668,6 +765,7 @@
         `;
 
         doc.body.innerHTML = `
+            <div id="pip-pair" aria-live="polite"></div>
             <div id="pip-main">
                 <div id="pip-output-single">
                     <span id="pip-placeholder">
@@ -686,6 +784,8 @@
                 <div class="divider"></div>
                 <button id="pip-plus" class="icon-btn" title="Větší písmo">+</button>
                 <button id="pip-minus" class="icon-btn" title="Menší písmo">−</button>
+                <button id="pip-translate" class="icon-btn" title="Zapnout překlad do češtiny" aria-label="Zapnout překlad do češtiny" aria-pressed="false" hidden>→ CZ</button>
+                <button id="pip-swap" class="icon-btn" title="Prohodit jazyky" aria-pressed="false" hidden>↔</button>
             </div>
         `;
 
@@ -698,12 +798,13 @@
         pipStartButton.addEventListener('click', toggleRecognition);
         doc.getElementById('pip-plus').addEventListener('click', () => sz(4));
         doc.getElementById('pip-minus').addEventListener('click', () => sz(-4));
+        doc.getElementById('pip-swap').addEventListener('click', swapLanguages);
+        doc.getElementById('pip-translate').addEventListener('click', toggleTranslation);
+        updatePipTranslationButton();
 
         applyPipAppearance();
 
-        if (finalTranscript || finalTranscriptEn) {
-            renderOutputs('');
-        }
+        renderOutputs();
     }
 
     function updatePipStartButton() {
@@ -743,6 +844,9 @@
 
     function startRecognition() {
         try {
+            rec.lang = sourceLang();
+            sessionLang = sourceLang();
+            hasStarted = true;
             rec.start();
             run = true;
             updatePipStartButton();
@@ -823,6 +927,9 @@
     }
 
     function cl() {
+        segments = [];
+        interimText = '';
+        statusInfo.innerText = '';
         finalTranscript = '';
         finalTranscriptEn = '';
         out.innerHTML = '';
@@ -841,7 +948,7 @@
 
     function cp() {
         const textToCopy = translateMode
-            ? `EN:\n${outEn.innerText}\n\nCZ:\n${out.innerText}`
+            ? `Originál:\n${outEn.innerText}\n\nPřeklad:\n${out.innerText}`
             : out.innerText;
 
         navigator.clipboard.writeText(textToCopy).then(() => {
