@@ -1,4 +1,4 @@
-<!DOCTYPE html><!--CZ_SK_EN-->
+<!DOCTYPE html><!--5_2 ostatni-jazyky-->
 <html lang="cs">
 <head>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-Z04Y4RZYFV"></script>
@@ -11,8 +11,8 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Bezplatný živý přepis češtiny, slovenštiny a angličtiny s volitelným překladem a plovoucím oknem. Kratofon funguje bez instalace a registrace.">
-    <title>Kratofon - elektronické ucho</title>
+    <meta name="description" content="Kratofon přepisuje řeč v sedmi jazycích: česky, slovensky, anglicky, německy, francouzsky, španělsky a ukrajinsky. Překlad zapnete jedním tlačítkem.">
+    <title>Kratofon 5.2 - elektronické ucho</title>
 
     <style>
         body {
@@ -70,7 +70,7 @@
         }
 
         #btn-pip {
-            min-width: 185px;
+            white-space: nowrap;
             }
 
         #btn-pip:hover,
@@ -117,6 +117,13 @@
             margin: 3px 11px 3px 19px;
         }
 
+        /* Oddělení informace o směru od ovládacích tlačítek. */
+        #main-pair {
+            margin-left: 8px;
+            padding-left: 12px;
+            border-left: 3px solid #fff;
+            white-space: nowrap;
+        }
         #status-info {
             font-size: 11px;
             color: #ffcc00;
@@ -192,6 +199,7 @@
         #coffee-content button {
             margin-top: 5px;
         }
+        .font-size {padding:3px 5px;line-height:1;} .font-size b {font-size:20px;} .font-size small {font-size:9px;}
     </style>
 </head>
 
@@ -202,7 +210,7 @@
         </a>
 
         <button id="btn-toggle" onclick="toggleRecognition()">START</button>
-        <button id="btn-pip" onclick="togglePip()">OTEVŘÍT PLOVOUCÍ OKNO</button>
+        <button id="btn-pip" title="Otevřít plovoucí okno" aria-pressed="false" onclick="togglePip()">PLOVOUCÍ OKNO</button>
 
         <button id="kafe"
                 onclick="document.getElementById('coffee-modal').style.display='flex'"
@@ -217,14 +225,18 @@
             <button id="lang-cs" onclick="setLang('cs-CZ')" class="active-lang" aria-pressed="true" title="Česky" aria-label="Česky">CZ</button>
             <button id="lang-sk" onclick="setLang('sk-SK')" aria-pressed="false" title="Slovensky" aria-label="Slovensky">SK</button>
             <button id="lang-en" onclick="setLang('en-US')" aria-pressed="false" title="Anglicky" aria-label="Anglicky">EN</button>
+            <button id="lang-de" onclick="setLang('de-DE')" aria-pressed="false" title="Německy" aria-label="Německy">DE</button>
+            <button id="lang-fr" onclick="setLang('fr-FR')" aria-pressed="false" title="Francouzsky" aria-label="Francouzsky">FR</button>
+            <button id="lang-es" onclick="setLang('es-ES')" aria-pressed="false" title="Španělsky" aria-label="Španělsky">ES</button>
+            <button id="lang-uk" onclick="setLang('uk-UA')" aria-pressed="false" title="Українська (ukrajinština)" aria-label="Українська (ukrajinština)">UA</button>
             <button id="btn-translate" onclick="toggleTranslation()" aria-pressed="false" hidden>Překlad</button>
             <button id="main-swap" hidden onclick="swapLanguages()" title="Prohodit jazyky" aria-label="Prohodit jazyky">↔</button>
             <span id="main-pair" aria-live="polite">CZ</span>
         </div>
 
         <div class="group">
-            <button onclick="sz(4)">Písmo +</button>
-            <button onclick="sz(-4)">Písmo -</button>
+            <button class="font-size" onclick="sz(4)" title="Zvětšit písmo" aria-label="Zvětšit písmo"><small>A</small><b>A</b></button>
+            <button class="font-size" onclick="sz(-4)" title="Zmenšit písmo" aria-label="Zmenšit písmo"><b>A</b><small>A</small></button>
         </div>
 
         <div class="group">
@@ -277,7 +289,7 @@
         <div id="output-en" class="column"></div>
 
         <div id="output" class="column">
-            Klikněte na START pro český přepis. Pro jiný jazyk nejdřív vyberte jazyk řeči. Překlad zapnete tlačítkem Překlad. Cílem je čeština; jiný cílový jazyk vyberte jako druhý. Tlačítko ↔ prohodí směr.<br>
+            Klikněte na START pro český přepis. Pro jiný jazyk nejdřív vyberte jazyk řeči. Překlad zapnete tlačítkem Překlad. Cílem je čeština; jiný cílový jazyk vyberte jako druhý. Tlačítko ↔ prohodí směr. Vybraný jazyk vypnete opětovným kliknutím; zůstane přepis v druhém jazyce bez překladu.<br>
 
             <p style="color:#ffcc00; text-align:center; font-weight:normal">
                 Kratofon zatím funguje<br>
@@ -317,7 +329,7 @@
     const sourceLang = () => reversed ? secondLang : currentLang;
     const targetLang = () => reversed ? currentLang : secondLang;
     const pairLabel = () => sourceLang() === targetLang() ? shortLang(sourceLang()) : shortLang(sourceLang()) + ' → ' + shortLang(targetLang());
-    const shortLang = lang => lang === 'cs-CZ' ? 'CZ' : lang.split('-')[0].toUpperCase();
+    const shortLang = lang => lang === 'cs-CZ' ? 'CZ' : lang === 'uk-UA' ? 'UA' : lang.split('-')[0].toUpperCase();
     let sessionLang = 'cs-CZ';
     let switchingLanguage = false;
     let interimText = '';
@@ -479,7 +491,7 @@
     }
 
     function updateLanguageControls() {
-        for (const [id, lang] of [['cs', 'cs-CZ'], ['sk', 'sk-SK'], ['en', 'en-US']]) {
+        for (const [id, lang] of [['cs', 'cs-CZ'], ['sk', 'sk-SK'], ['en', 'en-US'], ["de","de-DE"], ["fr","fr-FR"], ["es","es-ES"], ["uk","uk-UA"]]) {
             const button = document.getElementById('lang-' + id);
             const selected = lang === currentLang || lang === secondLang;
             button.classList.toggle('active-lang', selected);
@@ -498,6 +510,18 @@
     }
 
     function setLang(lang) {
+        // Druhé kliknutí odebere jazyk z dvojice; poslední jazyk zůstává.
+        if (lang === currentLang || lang === secondLang) {
+            if (currentLang === secondLang) return;
+            const remaining = lang === currentLang ? secondLang : currentLang;
+            currentLang = remaining;
+            secondLang = remaining;
+            reversed = false;
+            choosingTarget = true;
+            translateMode = false;
+            applyDirection();
+            return;
+        }
         if (choosingTarget && lang !== currentLang) {
             secondLang = lang;
             choosingTarget = false;
@@ -606,8 +630,8 @@
 
             buildPipWindow();
 
-            pipMainButton.innerText = 'ZAVŘÍT PLOVOUCÍ OKNO';
-            pipMainButton.classList.add('pip-open');
+            pipMainButton.innerText = 'PLOVOUCÍ OKNO';
+            pipMainButton.classList.add('pip-open'); pipMainButton.title = 'Zavřít plovoucí okno'; pipMainButton.setAttribute('aria-pressed','true');
 
             pipWindow.addEventListener('pagehide', () => {
                 // Plovoucí okno je jen druhý pohled na tentýž přepis.
@@ -619,8 +643,8 @@
                 pipSingleWrap = null;
                 pipDualWrap = null;
 
-                pipMainButton.innerText = 'OTEVŘÍT PLOVOUCÍ OKNO';
-                pipMainButton.classList.remove('pip-open');
+                pipMainButton.innerText = 'PLOVOUCÍ OKNO';
+                pipMainButton.classList.remove('pip-open'); pipMainButton.title = 'Otevřít plovoucí okno'; pipMainButton.setAttribute('aria-pressed','false');
 
                 updatePipStartButton();
             });
@@ -957,9 +981,9 @@
 
             setTimeout(() => {
                 if (pipWindow && !pipWindow.closed) {
-                    pipMainButton.innerText = 'ZAVŘÍT PLOVOUCÍ OKNO';
+                    pipMainButton.innerText = 'PLOVOUCÍ OKNO';
                 } else {
-                    pipMainButton.innerText = 'OTEVŘÍT PLOVOUCÍ OKNO';
+                    pipMainButton.innerText = 'PLOVOUCÍ OKNO';
                 }
             }, 1000);
         });
